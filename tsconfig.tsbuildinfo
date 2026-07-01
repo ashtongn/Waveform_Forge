@@ -1,0 +1,1 @@
+{"root":["./src/App.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/components/layout/Footer.tsx","./src/components/layout/Header.tsx","./src/components/layout/Layout.tsx","./src/lib/firebase.ts","./src/routes/public/About.tsx","./src/routes/public/Home.tsx","./src/routes/public/NotFound.tsx"],"errors":true,"version":"5.9.3"}

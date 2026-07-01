@@ -1,0 +1,33 @@
+rules_version = '2';
+
+// ============================================================================
+// Waveform Forge — Firestore Security Rules
+// ----------------------------------------------------------------------------
+// PHASE 0 (current): The public site reads NO data from Firestore — the public
+// About/Home pages are static. So we DENY everything by default. Nothing in the
+// app touches the database yet, and these rules guarantee no accidental access.
+//
+// PHASE 1 (auth + approval) will replace the body below with role/approval
+// checks. The intended model is sketched in comments so the upgrade is clear:
+//
+//   - Each signed-in user gets a /profiles/{uid} document with:
+//       { email, role: 'admin' | 'member', status: 'pending'|'approved'|'denied' }
+//   - Helper functions:
+//       isSignedIn()  -> request.auth != null
+//       myProfile()   -> get(/databases/$(db)/documents/profiles/$(uid)).data
+//       isApproved()  -> isSignedIn() && myProfile().status == 'approved'
+//       isAdmin()     -> isSignedIn() && myProfile().role == 'admin'
+//   - profiles: a user may read their own; only admin may change role/status.
+//   - equipment / boards / lessons: read+write require isApproved();
+//     destructive/admin ops require isAdmin().
+// ============================================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Deny-by-default for Phase 0. Remove this and add per-collection rules
+    // in Phase 1 once authentication and the profiles model are in place.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
