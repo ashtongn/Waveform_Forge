@@ -1,31 +1,90 @@
 rules_version = '2';
 
 // ============================================================================
-// Waveform Forge — Firestore Security Rules
+// Waveform Forge — Firestore Security Rules (Phase 1: auth + approval)
 // ----------------------------------------------------------------------------
-// PHASE 0 (current): The public site reads NO data from Firestore — the public
-// About/Home pages are static. So we DENY everything by default. Nothing in the
-// app touches the database yet, and these rules guarantee no accidental access.
+// Security model (free/Spark plan — no Cloud Functions, no custom claims):
 //
-// PHASE 1 (auth + approval) will replace the body below with role/approval
-// checks. The intended model is sketched in comments so the upgrade is clear:
-//
-//   - Each signed-in user gets a /profiles/{uid} document with:
-//       { email, role: 'admin' | 'member', status: 'pending'|'approved'|'denied' }
-//   - Helper functions:
-//       isSignedIn()  -> request.auth != null
-//       myProfile()   -> get(/databases/$(db)/documents/profiles/$(uid)).data
-//       isApproved()  -> isSignedIn() && myProfile().status == 'approved'
-//       isAdmin()     -> isSignedIn() && myProfile().role == 'admin'
-//   - profiles: a user may read their own; only admin may change role/status.
-//   - equipment / boards / lessons: read+write require isApproved();
-//     destructive/admin ops require isAdmin().
+//   - Each signed-in user has a /profiles/{uid} document:
+//       { email, role: 'member'|'admin', status: 'pending'|'approved'|'denied',
+//         createdAt }
+//   - ADMIN AUTHORITY comes ONLY from the hard-coded UID below — never from the
+//     `role` field (a user could otherwise try to set their own role). The
+//     `role` field is informational.
+//   - A user may create ONLY their own profile, and only as a pending member.
+//   - A user may NOT approve themselves or change their own role.
+//   - A denied user may move their OWN status back to 'pending' (re-request).
+//   - Future member collections require isApproved(); admin-only ops require
+//     isAdmin().
 // ============================================================================
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Deny-by-default for Phase 0. Remove this and add per-collection rules
-    // in Phase 1 once authentication and the profiles model are in place.
+
+    // ---- Admin bootstrap ---------------------------------------------------
+    // Replace the placeholder with YOUR Firebase Auth UID. Until you do, no
+    // account has admin power and the approval queue cannot be used.
+    function adminUid() {
+      return 'Ni6g9PNFC2Yiejz7e8NR2P0kpBA3';
+    }
+
+    // ---- Helpers -----------------------------------------------------------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.uid == adminUid();
+    }
+
+    function myProfile() {
+      return get(
+        /databases/$(database)/documents/profiles/$(request.auth.uid)
+      ).data;
+    }
+
+    function isApproved() {
+      return isSignedIn() && myProfile().status == 'approved';
+    }
+
+    // ---- profiles ----------------------------------------------------------
+    match /profiles/{uid} {
+      // A user may read their own profile; the admin may read all profiles
+      // (needed for the approval queue).
+      allow read: if isAdmin() || (isSignedIn() && request.auth.uid == uid);
+
+      // A user may create ONLY their own profile, and only as a pending member
+      // with an email matching their auth token. This prevents self-approval
+      // or self-promotion to admin at sign-up.
+      allow create: if isSignedIn()
+        && request.auth.uid == uid
+        && request.resource.data.role == 'member'
+        && request.resource.data.status == 'pending'
+        && request.resource.data.email == request.auth.token.email
+        && request.resource.data.keys().hasOnly(
+             ['email', 'role', 'status', 'createdAt']
+           );
+
+      // The admin may change anything (approve / deny / adjust role).
+      // Otherwise, a denied user may move ONLY their own status from 'denied'
+      // back to 'pending' (re-request), touching no other field.
+      allow update: if isAdmin()
+        || (
+          isSignedIn()
+          && request.auth.uid == uid
+          && resource.data.status == 'denied'
+          && request.resource.data.status == 'pending'
+          && request.resource.data.diff(resource.data)
+               .affectedKeys().hasOnly(['status'])
+        );
+
+      // Only the admin may delete a profile.
+      allow delete: if isAdmin();
+    }
+
+    // ---- Deny everything else ----------------------------------------------
+    // Member collections (equipment, boards, lessons, ...) will be added here
+    // guarded by isApproved()/isAdmin() as those features are built.
     match /{document=**} {
       allow read, write: if false;
     }

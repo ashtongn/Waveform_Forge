@@ -1,6 +1,10 @@
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../auth/useAuth';
 
 export default function Home() {
+  const { user, profile } = useAuth();
+  const isApproved = profile?.status === 'approved';
+
   return (
     <section className="space-y-10">
       <div className="space-y-4">
@@ -22,9 +26,21 @@ export default function Home() {
           >
             Learn what we do
           </Link>
-          <span className="rounded-md border border-forge-border px-4 py-2 text-sm font-medium text-forge-muted">
-            Team sign-in — coming soon
-          </span>
+          {isApproved ? (
+            <Link
+              to="/app"
+              className="rounded-md border border-forge-border px-4 py-2 text-sm font-medium text-forge-text transition hover:border-forge-accent hover:text-forge-accent"
+            >
+              Go to member area
+            </Link>
+          ) : (
+            <Link
+              to={user ? '/app' : '/login'}
+              className="rounded-md border border-forge-border px-4 py-2 text-sm font-medium text-forge-text transition hover:border-forge-accent hover:text-forge-accent"
+            >
+              Team sign-in
+            </Link>
+          )}
         </div>
       </div>
 
