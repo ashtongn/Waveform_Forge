@@ -8,6 +8,7 @@ import SignUp from './routes/auth/SignUp';
 import RequireApproved from './routes/RequireApproved';
 import RequireAdmin from './routes/RequireAdmin';
 import MemberHome from './routes/member/MemberHome';
+import EquipmentTracker from './routes/member/equipment/EquipmentTracker';
 import AdminHome from './routes/admin/AdminHome';
 
 export default function App() {
@@ -23,6 +24,7 @@ export default function App() {
         {/* Approved members only */}
         <Route element={<RequireApproved />}>
           <Route path="app" element={<MemberHome />} />
+          <Route path="app/equipment" element={<EquipmentTracker />} />
         </Route>
 
         {/* Admin only */}

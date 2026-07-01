@@ -82,6 +82,14 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // ---- equipment ---------------------------------------------------------
+    // Shared team inventory. Any approved member (or the admin) may read and
+    // write; unapproved and signed-out users are denied. Records have no
+    // per-user ownership — the whole team maintains one inventory.
+    match /equipment/{itemId} {
+      allow read, create, update, delete: if isApproved() || isAdmin();
+    }
+
     // ---- Deny everything else ----------------------------------------------
     // Member collections (equipment, boards, lessons, ...) will be added here
     // guarded by isApproved()/isAdmin() as those features are built.

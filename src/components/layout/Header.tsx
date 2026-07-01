@@ -32,8 +32,13 @@ export default function Header() {
           </NavLink>
 
           {isApproved && (
-            <NavLink to="/app" className={navLinkClass}>
+            <NavLink to="/app" end className={navLinkClass}>
               Members
+            </NavLink>
+          )}
+          {isApproved && (
+            <NavLink to="/app/equipment" className={navLinkClass}>
+              Equipment
             </NavLink>
           )}
           {isAdmin && (

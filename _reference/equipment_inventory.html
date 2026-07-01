@@ -1,0 +1,1577 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Equipment Usage Tracker</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #1d252c;
+      --muted: #62717f;
+      --line: #d8dee4;
+      --panel: #ffffff;
+      --field: #ffffff;
+      --table: #ffffff;
+      --header-bg: #24323d;
+      --table-head: #edf1f2;
+      --table-head-ink: #34424d;
+      --subtle: #eef2f4;
+      --nested: #f8fafb;
+      --group: #e9eef0;
+      --group-border: #c6d0d6;
+      --page: #f5f7f8;
+      --accent: #0f766e;
+      --accent-dark: #115e59;
+      --warn: #b45309;
+      --danger: #b91c1c;
+      --ok-bg: #dff3ed;
+      --busy-bg: #fff1d6;
+      --service-bg: #ffe2e2;
+      --partial-bg: #e8ecf7;
+      --partial-ink: #31456f;
+      --shadow: 0 1px 2px rgba(20, 28, 35, 0.08);
+    }
+
+    body.dark {
+      color-scheme: dark;
+      --ink: #e8edf2;
+      --muted: #9aa8b5;
+      --line: #33424f;
+      --panel: #15212b;
+      --field: #101923;
+      --table: #111c26;
+      --header-bg: #0d151d;
+      --table-head: #1c2b36;
+      --table-head-ink: #d9e2ea;
+      --subtle: #21313d;
+      --nested: #101923;
+      --group: #20313d;
+      --group-border: #425563;
+      --page: #0b1117;
+      --accent: #14b8a6;
+      --accent-dark: #0d9488;
+      --warn: #d97706;
+      --danger: #dc2626;
+      --ok-bg: #123a32;
+      --busy-bg: #3b2b0d;
+      --service-bg: #451c1c;
+      --partial-bg: #1d2942;
+      --partial-ink: #c9d7ff;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--page);
+      color: var(--ink);
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 15px;
+      line-height: 1.45;
+    }
+
+    header {
+      background: var(--header-bg);
+      color: #fff;
+      border-bottom: 4px solid #d97706;
+    }
+
+    .topbar {
+      width: min(1440px, 100%);
+      margin: 0 auto;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    main {
+      width: min(1440px, 100%);
+      margin: 0 auto;
+      padding: 22px 24px 36px;
+    }
+
+    .actions,
+    .summary,
+    .workspace,
+    .panel,
+    .filters {
+      display: grid;
+      gap: 14px;
+    }
+
+    .actions {
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+      align-items: end;
+      margin-bottom: 18px;
+    }
+
+    .summary {
+      grid-template-columns: repeat(4, minmax(140px, 1fr));
+      margin-bottom: 18px;
+    }
+
+    .stat {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 14px;
+      min-height: 86px;
+    }
+
+    .stat span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 30px;
+      line-height: 1.1;
+    }
+
+    .workspace {
+      grid-template-columns: minmax(360px, 1fr) minmax(620px, 2fr);
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .panel h2 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    input,
+    select,
+    textarea,
+    button {
+      font: inherit;
+      letter-spacing: 0;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      padding: 9px 10px;
+      background: var(--field);
+      color: var(--ink);
+      min-height: 40px;
+    }
+
+    textarea {
+      min-height: 78px;
+      resize: vertical;
+    }
+
+    button {
+      border: 1px solid transparent;
+      border-radius: 6px;
+      min-height: 40px;
+      padding: 9px 12px;
+      color: #fff;
+      background: var(--accent);
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    button:hover {
+      background: var(--accent-dark);
+    }
+
+    button.secondary {
+      background: var(--field);
+      color: var(--ink);
+      border-color: var(--line);
+    }
+
+    button.secondary:hover {
+      background: var(--subtle);
+    }
+
+    button.warning {
+      background: var(--warn);
+    }
+
+    button.danger {
+      background: var(--danger);
+    }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .filters {
+      grid-template-columns: minmax(220px, 1fr) repeat(3, minmax(130px, 180px));
+      margin-top: 2px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 900px;
+      background: var(--table);
+    }
+
+    th,
+    td {
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      padding: 10px;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--table-head);
+      color: var(--table-head-ink);
+      font-size: 13px;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 92px;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .available {
+      background: var(--ok-bg);
+      color: #0f5c4f;
+    }
+
+    .checked-out {
+      background: var(--busy-bg);
+      color: #7c4a03;
+    }
+
+    .service {
+      background: var(--service-bg);
+      color: #8d1b1b;
+    }
+
+    .partial {
+      background: var(--partial-bg);
+      color: var(--partial-ink);
+    }
+
+    .row-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      min-width: 210px;
+    }
+
+    .row-actions button {
+      min-height: 32px;
+      padding: 6px 9px;
+      font-size: 13px;
+    }
+
+    .checkout-list {
+      display: grid;
+      gap: 6px;
+      min-width: 170px;
+    }
+
+    .checkout-entry {
+      display: grid;
+      gap: 2px;
+      padding: 7px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--nested);
+    }
+
+    .checkout-entry strong {
+      font-size: 13px;
+    }
+
+    .checkout-entry span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .checkout-entry button {
+      justify-self: start;
+      min-height: 28px;
+      padding: 4px 8px;
+      margin-top: 3px;
+      font-size: 12px;
+    }
+
+    .group-row td {
+      background: var(--group);
+      border-top: 2px solid var(--group-border);
+      font-weight: 700;
+    }
+
+    .group-name {
+      display: grid;
+      gap: 2px;
+    }
+
+    .group-name span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 400;
+    }
+
+    .group-toggle {
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      min-height: 28px;
+      padding: 0;
+      margin-right: 8px;
+      background: var(--field);
+      color: var(--ink);
+      border: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    .group-toggle:hover {
+      background: var(--subtle);
+    }
+
+    .child-row td:first-child,
+    .child-row td:nth-child(2) {
+      padding-left: 24px;
+    }
+
+    .log {
+      max-height: 310px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--table);
+    }
+
+    .log-entry {
+      display: grid;
+      gap: 3px;
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .log-entry:last-child {
+      border-bottom: 0;
+    }
+
+    .log-entry strong {
+      font-size: 14px;
+    }
+
+    .log-entry span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .empty {
+      color: var(--muted);
+      padding: 22px;
+      text-align: center;
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 13px;
+      margin: 0;
+    }
+
+    .file-input {
+      background: var(--field);
+      color: var(--ink);
+      border-color: var(--line);
+      padding: 8px;
+    }
+
+    dialog {
+      width: min(520px, calc(100% - 28px));
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0;
+      box-shadow: 0 24px 80px rgba(18, 26, 33, 0.25);
+    }
+
+    dialog::backdrop {
+      background: rgba(24, 34, 42, 0.48);
+    }
+
+    .dialog-body {
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .dialog-body h2 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    @media (max-width: 1020px) {
+      .workspace,
+      .actions,
+      .summary {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .filters {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .topbar,
+      main {
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .workspace,
+      .actions,
+      .summary,
+      .filters,
+      form {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 21px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <h1>Equipment Usage Tracker</h1>
+      <div class="button-row">
+        <button class="secondary" id="themeToggleBtn" type="button">Dark Mode</button>
+        <button class="secondary" id="exportInventoryBtn" type="button">Export Inventory CSV</button>
+        <button class="secondary" id="exportCheckoutsBtn" type="button">Export Checkouts CSV</button>
+        <button class="secondary" id="exportLogBtn" type="button">Export Usage Log CSV</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="actions" aria-label="Spreadsheet actions">
+      <label>
+        Import inventory CSV
+        <input class="file-input" id="csvFile" type="file" accept=".csv,text/csv">
+      </label>
+      <label>
+        Import mode
+        <select id="importMode">
+          <option value="merge">Merge with current inventory</option>
+          <option value="replace">Replace current inventory</option>
+        </select>
+      </label>
+      <button id="sampleBtn" type="button">Load Sample Items</button>
+      <button class="danger" id="clearBtn" type="button">Clear Local Data</button>
+    </section>
+
+    <section class="summary" aria-label="Inventory summary">
+      <div class="stat"><span>Total units</span><strong id="totalCount">0</strong></div>
+      <div class="stat"><span>Available</span><strong id="availableCount">0</strong></div>
+      <div class="stat"><span>Checked out</span><strong id="checkedOutCount">0</strong></div>
+      <div class="stat"><span>In service</span><strong id="serviceCount">0</strong></div>
+    </section>
+
+    <section class="workspace">
+      <div class="panel">
+        <h2>Add or edit equipment</h2>
+        <p class="note">Data is saved in this browser. Export CSV files when you need a backup or spreadsheet copy.</p>
+        <form id="equipmentForm">
+          <input id="editId" type="hidden">
+          <label>
+            Asset ID
+            <input id="assetId" required placeholder="EQ-001">
+          </label>
+          <label>
+            Equipment name
+            <input id="name" required placeholder="Camera Kit">
+          </label>
+          <label>
+            Category
+            <input id="category" placeholder="Audio, Camera, Tools">
+          </label>
+          <label>
+            Group
+            <input id="groupName" placeholder="Laptops">
+          </label>
+          <label>
+            Location
+            <input id="location" placeholder="Warehouse A">
+          </label>
+          <label>
+            Total quantity
+            <input id="quantity" type="number" min="1" step="1" value="1">
+          </label>
+          <label>
+            Checked out quantity
+            <input id="checkedOutQuantity" type="number" min="0" step="1" value="0">
+          </label>
+          <label>
+            In service quantity
+            <input id="serviceQuantity" type="number" min="0" step="1" value="0">
+          </label>
+          <label>
+            Status
+            <select id="status">
+              <option value="Available">Available</option>
+              <option value="Checked Out">Checked Out</option>
+              <option value="In Service">In Service</option>
+            </select>
+          </label>
+          <label>
+            Assigned to
+            <input id="assignedTo" placeholder="Person or team">
+          </label>
+          <label>
+            Checkout date
+            <input id="checkoutDate" type="date">
+          </label>
+          <label>
+            Due date
+            <input id="dueDate" type="date">
+          </label>
+          <label class="full">
+            Notes
+            <textarea id="notes" placeholder="Condition, accessories, maintenance notes"></textarea>
+          </label>
+          <div class="button-row full">
+            <button id="saveBtn" type="submit">Add Equipment</button>
+            <button class="secondary" id="resetBtn" type="button">Reset Form</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="panel">
+        <h2>Inventory</h2>
+        <div class="filters">
+          <label>
+            Search
+            <input id="search" placeholder="Search asset, name, category, person">
+          </label>
+          <label>
+            Status
+            <select id="statusFilter">
+              <option value="">All statuses</option>
+              <option value="Available">Available</option>
+              <option value="Checked Out">Checked Out</option>
+              <option value="In Service">In Service</option>
+            </select>
+          </label>
+          <label>
+            Category
+            <select id="categoryFilter">
+              <option value="">All categories</option>
+            </select>
+          </label>
+          <label>
+            Sort
+            <select id="sortBy">
+              <option value="assetId">Asset ID</option>
+              <option value="name">Equipment name</option>
+              <option value="status">Status</option>
+              <option value="dueDate">Due date</option>
+            </select>
+          </label>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Asset ID</th>
+                <th>Name</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Total</th>
+                <th>Available</th>
+                <th>Out</th>
+                <th>Service</th>
+                <th>Assigned To</th>
+                <th>Location</th>
+                <th>Due</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="inventoryBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Bulk add individual items</h2>
+        <p class="note">Use one line per item. With a shared Asset ID, line format is: Name, Assigned To, Due Date, Notes.</p>
+        <form id="bulkForm">
+          <label>
+            Group
+            <input id="bulkGroupName" placeholder="Laptops">
+          </label>
+          <label>
+            Shared Asset ID
+            <input id="bulkAssetId" placeholder="LAPTOPS">
+          </label>
+          <label>
+            Category
+            <input id="bulkCategory" placeholder="Computers">
+          </label>
+          <label>
+            Location
+            <input id="bulkLocation" placeholder="IT closet">
+          </label>
+          <label class="full">
+            Items
+            <textarea id="bulkItems" required placeholder="Dell Latitude 5440 - Front Desk, Maria, 2026-07-15, Charger included&#10;Dell Latitude 5440 - Spare&#10;MacBook Air - Design, Jordan"></textarea>
+          </label>
+          <div class="button-row full">
+            <button id="bulkAddBtn" type="submit">Add Items</button>
+            <button class="secondary" id="bulkClearBtn" type="button">Clear Bulk Form</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="panel full">
+        <h2>Usage log</h2>
+        <div class="log" id="usageLog"></div>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="checkoutDialog">
+    <form class="dialog-body" id="checkoutForm" method="dialog">
+      <h2 id="checkoutTitle">Check out equipment</h2>
+      <input id="checkoutItemId" type="hidden">
+      <label>
+        Assigned to
+        <input id="checkoutPerson" required placeholder="Person or team">
+      </label>
+      <label>
+        Quantity
+        <input id="checkoutQuantity" type="number" min="1" step="1" value="1">
+      </label>
+      <label>
+        Due date
+        <input id="checkoutDue" type="date">
+      </label>
+      <label>
+        Notes
+        <textarea id="checkoutNotes" placeholder="Optional usage notes"></textarea>
+      </label>
+      <div class="button-row">
+        <button id="confirmCheckoutBtn" type="submit">Check Out</button>
+        <button class="secondary" id="cancelCheckoutBtn" type="button">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script>
+    const STORAGE_KEY = "equipmentInventory.v1";
+    const LOG_KEY = "equipmentUsageLog.v1";
+    const THEME_KEY = "equipmentTheme.v1";
+
+    const state = {
+      inventory: load(STORAGE_KEY, []),
+      log: load(LOG_KEY, []),
+      collapsedGroups: new Set(),
+      filters: {
+        search: "",
+        status: "",
+        category: "",
+        sortBy: "assetId"
+      }
+    };
+
+    const els = {
+      equipmentForm: document.getElementById("equipmentForm"),
+      editId: document.getElementById("editId"),
+      assetId: document.getElementById("assetId"),
+      name: document.getElementById("name"),
+      category: document.getElementById("category"),
+      groupName: document.getElementById("groupName"),
+      location: document.getElementById("location"),
+      quantity: document.getElementById("quantity"),
+      checkedOutQuantity: document.getElementById("checkedOutQuantity"),
+      serviceQuantity: document.getElementById("serviceQuantity"),
+      status: document.getElementById("status"),
+      assignedTo: document.getElementById("assignedTo"),
+      checkoutDate: document.getElementById("checkoutDate"),
+      dueDate: document.getElementById("dueDate"),
+      notes: document.getElementById("notes"),
+      saveBtn: document.getElementById("saveBtn"),
+      resetBtn: document.getElementById("resetBtn"),
+      bulkForm: document.getElementById("bulkForm"),
+      bulkGroupName: document.getElementById("bulkGroupName"),
+      bulkAssetId: document.getElementById("bulkAssetId"),
+      bulkCategory: document.getElementById("bulkCategory"),
+      bulkLocation: document.getElementById("bulkLocation"),
+      bulkItems: document.getElementById("bulkItems"),
+      bulkAddBtn: document.getElementById("bulkAddBtn"),
+      bulkClearBtn: document.getElementById("bulkClearBtn"),
+      themeToggleBtn: document.getElementById("themeToggleBtn"),
+      csvFile: document.getElementById("csvFile"),
+      importMode: document.getElementById("importMode"),
+      sampleBtn: document.getElementById("sampleBtn"),
+      clearBtn: document.getElementById("clearBtn"),
+      exportInventoryBtn: document.getElementById("exportInventoryBtn"),
+      exportCheckoutsBtn: document.getElementById("exportCheckoutsBtn"),
+      exportLogBtn: document.getElementById("exportLogBtn"),
+      totalCount: document.getElementById("totalCount"),
+      availableCount: document.getElementById("availableCount"),
+      checkedOutCount: document.getElementById("checkedOutCount"),
+      serviceCount: document.getElementById("serviceCount"),
+      search: document.getElementById("search"),
+      statusFilter: document.getElementById("statusFilter"),
+      categoryFilter: document.getElementById("categoryFilter"),
+      sortBy: document.getElementById("sortBy"),
+      inventoryBody: document.getElementById("inventoryBody"),
+      usageLog: document.getElementById("usageLog"),
+      checkoutDialog: document.getElementById("checkoutDialog"),
+      checkoutForm: document.getElementById("checkoutForm"),
+      checkoutTitle: document.getElementById("checkoutTitle"),
+      checkoutItemId: document.getElementById("checkoutItemId"),
+      checkoutPerson: document.getElementById("checkoutPerson"),
+      checkoutQuantity: document.getElementById("checkoutQuantity"),
+      checkoutDue: document.getElementById("checkoutDue"),
+      checkoutNotes: document.getElementById("checkoutNotes"),
+      confirmCheckoutBtn: document.getElementById("confirmCheckoutBtn"),
+      cancelCheckoutBtn: document.getElementById("cancelCheckoutBtn")
+    };
+
+    function load(key, fallback) {
+      try {
+        return JSON.parse(localStorage.getItem(key)) || fallback;
+      } catch {
+        return fallback;
+      }
+    }
+
+    function save() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.inventory));
+      localStorage.setItem(LOG_KEY, JSON.stringify(state.log));
+    }
+
+    function applyTheme(theme) {
+      const isDark = theme === "dark";
+      document.body.classList.toggle("dark", isDark);
+      els.themeToggleBtn.textContent = isDark ? "Light Mode" : "Dark Mode";
+      localStorage.setItem(THEME_KEY, theme);
+    }
+
+    function toggleTheme() {
+      applyTheme(document.body.classList.contains("dark") ? "light" : "dark");
+    }
+
+    function uid() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    }
+
+    function today() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function normalizeStatus(value) {
+      const text = String(value || "Available").trim().toLowerCase();
+      if (["checked out", "checked-out", "out", "in use", "assigned"].includes(text)) return "Checked Out";
+      if (["service", "in service", "maintenance", "repair", "down"].includes(text)) return "In Service";
+      return "Available";
+    }
+
+    function toWholeNumber(value, fallback = 0) {
+      const number = Number.parseInt(value, 10);
+      return Number.isFinite(number) && number >= 0 ? number : fallback;
+    }
+
+    function clampQuantities(item) {
+      item.quantity = Math.max(1, toWholeNumber(item.quantity, 1));
+      item.checkouts = Array.isArray(item.checkouts) ? item.checkouts : [];
+      item.checkouts = item.checkouts
+        .map((checkout) => ({
+          id: checkout.id || uid(),
+          person: checkout.person || checkout.assignedTo || checkout["assigned to"] || "",
+          quantity: toWholeNumber(checkout.quantity || checkout.qty, 1),
+          checkoutDate: checkout.checkoutDate || checkout["checkout date"] || today(),
+          dueDate: checkout.dueDate || checkout["due date"] || "",
+          notes: checkout.notes || ""
+        }))
+        .filter((checkout) => checkout.quantity > 0);
+      item.checkedOutQuantity = Math.min(item.quantity, item.checkouts.reduce((sum, checkout) => sum + checkout.quantity, 0));
+      item.serviceQuantity = Math.min(item.quantity - item.checkedOutQuantity, toWholeNumber(item.serviceQuantity, 0));
+      return item;
+    }
+
+    function availableQuantity(item) {
+      return Math.max(0, item.quantity - item.checkedOutQuantity - item.serviceQuantity);
+    }
+
+    function displayStatus(item) {
+      const available = availableQuantity(item);
+      if (available === item.quantity) return "Available";
+      if (item.checkedOutQuantity === item.quantity) return "Checked Out";
+      if (item.serviceQuantity === item.quantity) return "In Service";
+      return "Partial";
+    }
+
+    function normalizeItem(row) {
+      const status = normalizeStatus(row.status);
+      const quantity = toWholeNumber(row.quantity || row.qty || row["total quantity"] || row.total || row.count, 1);
+      let checkedOutQuantity = toWholeNumber(row.checkedOutQuantity || row["checked out quantity"] || row["checked out qty"] || row.out || row["out quantity"], 0);
+      let serviceQuantity = toWholeNumber(row.serviceQuantity || row["service quantity"] || row["in service quantity"] || row["service qty"], 0);
+
+      if (!checkedOutQuantity && status === "Checked Out") checkedOutQuantity = quantity;
+      if (!serviceQuantity && status === "In Service") serviceQuantity = quantity;
+      const assignedTo = row.assignedTo || row["assigned to"] || row.person || row.user || "";
+      const checkouts = Array.isArray(row.checkouts) ? row.checkouts : [];
+      if (!checkouts.length && checkedOutQuantity > 0) {
+        checkouts.push({
+          id: uid(),
+          person: assignedTo || "Unassigned",
+          quantity: checkedOutQuantity,
+          checkoutDate: row.checkoutDate || row["checkout date"] || row.checkedOut || row["checked out"] || today(),
+          dueDate: row.dueDate || row["due date"] || row.due || "",
+          notes: ""
+        });
+      }
+
+      const item = {
+        id: row.id || uid(),
+        assetId: row.assetId || row["asset id"] || row.asset || row.id || "",
+        name: row.name || row.equipment || row.item || row.description || "",
+        category: row.category || row.type || "",
+        groupName: row.groupName || row["group name"] || row.group || "",
+        location: row.location || row.room || "",
+        status,
+        quantity,
+        checkedOutQuantity,
+        serviceQuantity,
+        checkouts,
+        assignedTo,
+        checkoutDate: row.checkoutDate || row["checkout date"] || row.checkedOut || row["checked out"] || "",
+        dueDate: row.dueDate || row["due date"] || row.due || "",
+        notes: row.notes || row.note || ""
+      };
+
+      if (!item.assetId) item.assetId = `EQ-${String(state.inventory.length + 1).padStart(3, "0")}`;
+      if (!item.name) item.name = "Unnamed equipment";
+      clampQuantities(item);
+      item.assignedTo = item.checkouts.map((checkout) => checkout.person).filter(Boolean).join("; ");
+      item.checkoutDate = item.checkouts[0]?.checkoutDate || "";
+      item.dueDate = item.checkouts[0]?.dueDate || "";
+      item.status = displayStatus(item);
+      return item;
+    }
+
+    function logAction(item, action, details = "") {
+      state.log.unshift({
+        id: uid(),
+        itemId: item.id,
+        assetId: item.assetId,
+        name: item.name,
+        action,
+        details,
+        date: new Date().toISOString()
+      });
+      state.log = state.log.slice(0, 500);
+    }
+
+    function resetForm() {
+      els.equipmentForm.reset();
+      els.editId.value = "";
+      els.quantity.value = "1";
+      els.checkedOutQuantity.value = "0";
+      els.serviceQuantity.value = "0";
+      els.status.value = "Available";
+      els.saveBtn.textContent = "Add Equipment";
+    }
+
+    function formItem() {
+      const existing = state.inventory.find((entry) => entry.id === els.editId.value);
+      return normalizeItem({
+        id: els.editId.value || uid(),
+        assetId: els.assetId.value.trim(),
+        name: els.name.value.trim(),
+        category: els.category.value.trim(),
+        groupName: els.groupName.value.trim(),
+        location: els.location.value.trim(),
+        quantity: els.quantity.value,
+        checkedOutQuantity: els.checkedOutQuantity.value,
+        serviceQuantity: els.serviceQuantity.value,
+        checkouts: existing?.checkouts || [],
+        status: els.status.value,
+        assignedTo: els.assignedTo.value.trim(),
+        checkoutDate: els.checkoutDate.value,
+        dueDate: els.dueDate.value,
+        notes: els.notes.value.trim()
+      });
+    }
+
+    function parseBulkLine(line, sharedAssetId = "") {
+      const header = sharedAssetId ? "Name,Assigned To,Due Date,Notes" : "Asset ID,Name,Assigned To,Due Date,Notes";
+      const values = parseCsv(`${header}\n${line}`)[0] || {};
+      const assetId = sharedAssetId || (values["asset id"] || "").trim();
+      const name = (values.name || assetId).trim();
+      const person = (values["assigned to"] || "").trim();
+      return {
+        assetId,
+        name,
+        assignedTo: person,
+        dueDate: (values["due date"] || "").trim(),
+        notes: (values.notes || "").trim()
+      };
+    }
+
+    function bulkItems() {
+      const sharedAssetId = els.bulkAssetId.value.trim();
+      return els.bulkItems.value
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => parseBulkLine(line, sharedAssetId))
+        .map((row) => normalizeItem({
+          ...row,
+          category: els.bulkCategory.value.trim(),
+          groupName: els.bulkGroupName.value.trim() || sharedAssetId || els.bulkCategory.value.trim(),
+          location: els.bulkLocation.value.trim(),
+          quantity: 1,
+          checkedOutQuantity: row.assignedTo ? 1 : 0,
+          checkoutDate: row.assignedTo ? today() : "",
+          status: row.assignedTo ? "Checked Out" : "Available"
+        }));
+    }
+
+    function editItem(id) {
+      const item = state.inventory.find((entry) => entry.id === id);
+      if (!item) return;
+      els.editId.value = item.id;
+      els.assetId.value = item.assetId;
+      els.name.value = item.name;
+      els.category.value = item.category;
+      els.groupName.value = item.groupName;
+      els.location.value = item.location;
+      els.quantity.value = item.quantity;
+      els.checkedOutQuantity.value = item.checkedOutQuantity;
+      els.serviceQuantity.value = item.serviceQuantity;
+      els.status.value = item.status;
+      els.assignedTo.value = item.assignedTo;
+      els.checkoutDate.value = item.checkoutDate;
+      els.dueDate.value = item.dueDate;
+      els.notes.value = item.notes;
+      els.saveBtn.textContent = "Save Changes";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function deleteItem(id) {
+      const item = state.inventory.find((entry) => entry.id === id);
+      if (!item) return;
+      const confirmed = confirm(`Delete ${item.assetId} - ${item.name}?`);
+      if (!confirmed) return;
+      state.inventory = state.inventory.filter((entry) => entry.id !== id);
+      logAction(item, "Deleted", "Removed from inventory");
+      save();
+      render();
+    }
+
+    function openCheckout(id) {
+      const item = state.inventory.find((entry) => entry.id === id);
+      if (!item) return;
+      const available = availableQuantity(item);
+      if (!available) {
+        alert("No available quantity to check out.");
+        return;
+      }
+      els.checkoutItemId.value = item.id;
+      els.checkoutPerson.value = "";
+      els.checkoutQuantity.value = "1";
+      els.checkoutQuantity.max = String(available);
+      els.checkoutDue.value = "";
+      els.checkoutNotes.value = "";
+      els.checkoutTitle.textContent = `Check out ${item.assetId} (${available} available)`;
+      els.checkoutDialog.showModal();
+    }
+
+    function syncCheckoutSummary(item) {
+      clampQuantities(item);
+      item.assignedTo = item.checkouts.map((checkout) => checkout.person).filter(Boolean).join("; ");
+      item.checkoutDate = item.checkouts[0]?.checkoutDate || "";
+      item.dueDate = item.checkouts[0]?.dueDate || "";
+      item.status = displayStatus(item);
+    }
+
+    function returnItem(id, checkoutId = "") {
+      const item = state.inventory.find((entry) => entry.id === id);
+      if (!item) return;
+      const checkout = checkoutId ? item.checkouts.find((entry) => entry.id === checkoutId) : item.checkouts[0];
+      if (!checkout) {
+        alert("No checked-out quantity to return.");
+        return;
+      }
+      const amount = Math.min(checkout.quantity, toWholeNumber(prompt(`Quantity to return from ${checkout.person} for ${item.assetId}`, String(checkout.quantity)), checkout.quantity));
+      if (!amount) return;
+      checkout.quantity -= amount;
+      if (checkout.quantity <= 0) {
+        item.checkouts = item.checkouts.filter((entry) => entry.id !== checkout.id);
+      }
+      syncCheckoutSummary(item);
+      logAction(item, "Returned", `${amount} returned from ${checkout.person}`);
+      save();
+      render();
+    }
+
+    function serviceItem(id) {
+      const item = state.inventory.find((entry) => entry.id === id);
+      if (!item) return;
+      const available = availableQuantity(item);
+      if (!available) {
+        alert("No available quantity to mark in service.");
+        return;
+      }
+      const amount = Math.min(available, toWholeNumber(prompt(`Quantity to mark in service for ${item.assetId}`, String(available)), available));
+      if (!amount) return;
+      item.serviceQuantity += amount;
+      item.status = displayStatus(item);
+      logAction(item, "Marked in service", `${amount} unavailable for checkout`);
+      save();
+      render();
+    }
+
+    function availableItem(id) {
+      const item = state.inventory.find((entry) => entry.id === id);
+      if (!item) return;
+      if (!item.serviceQuantity) {
+        alert("No in-service quantity to mark available.");
+        return;
+      }
+      const amount = Math.min(item.serviceQuantity, toWholeNumber(prompt(`Quantity to mark available for ${item.assetId}`, String(item.serviceQuantity)), item.serviceQuantity));
+      if (!amount) return;
+      item.serviceQuantity -= amount;
+      item.status = displayStatus(item);
+      logAction(item, "Marked available", `${amount} ready for use`);
+      save();
+      render();
+    }
+
+    function filteredItems() {
+      const search = state.filters.search.toLowerCase();
+      return state.inventory
+        .filter((item) => {
+          const checkoutText = item.checkouts.map((checkout) => [checkout.person, checkout.dueDate, checkout.notes].join(" ")).join(" ");
+          const haystack = [item.assetId, item.name, item.groupName, item.category, item.location, item.assignedTo, checkoutText, item.notes].join(" ").toLowerCase();
+          const statusMatches = !state.filters.status ||
+            (state.filters.status === "Available" && availableQuantity(item) > 0) ||
+            (state.filters.status === "Checked Out" && item.checkedOutQuantity > 0) ||
+            (state.filters.status === "In Service" && item.serviceQuantity > 0);
+          return (!search || haystack.includes(search)) &&
+            statusMatches &&
+            (!state.filters.category || item.category === state.filters.category);
+        })
+        .sort((a, b) => String(a[state.filters.sortBy] || "").localeCompare(String(b[state.filters.sortBy] || ""), undefined, { numeric: true }));
+    }
+
+    function statusClass(status) {
+      if (status === "Checked Out") return "checked-out";
+      if (status === "In Service") return "service";
+      if (status === "Partial") return "partial";
+      return "available";
+    }
+
+    function renderSummary() {
+      els.totalCount.textContent = state.inventory.reduce((sum, item) => sum + item.quantity, 0);
+      els.availableCount.textContent = state.inventory.reduce((sum, item) => sum + availableQuantity(item), 0);
+      els.checkedOutCount.textContent = state.inventory.reduce((sum, item) => sum + item.checkedOutQuantity, 0);
+      els.serviceCount.textContent = state.inventory.reduce((sum, item) => sum + item.serviceQuantity, 0);
+    }
+
+    function renderCategories() {
+      const current = els.categoryFilter.value;
+      const categories = [...new Set(state.inventory.map((item) => item.category).filter(Boolean))].sort();
+      els.categoryFilter.innerHTML = `<option value="">All categories</option>` + categories.map((category) => `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`).join("");
+      els.categoryFilter.value = categories.includes(current) ? current : "";
+      state.filters.category = els.categoryFilter.value;
+    }
+
+    function renderInventory() {
+      const items = filteredItems();
+      if (!items.length) {
+        els.inventoryBody.innerHTML = `<tr><td colspan="12" class="empty">No equipment matches the current filters.</td></tr>`;
+        return;
+      }
+
+      const grouped = [];
+      const groupMap = new Map();
+      items.forEach((item) => {
+        if (!item.groupName) {
+          grouped.push({ type: "item", item });
+          return;
+        }
+        if (!groupMap.has(item.groupName)) {
+          const group = { type: "group", name: item.groupName, items: [] };
+          groupMap.set(item.groupName, group);
+          grouped.push(group);
+        }
+        groupMap.get(item.groupName).items.push(item);
+      });
+
+      els.inventoryBody.innerHTML = grouped.map((entry) => {
+        if (entry.type === "item") return renderItemRow(entry.item);
+        const isCollapsed = state.collapsedGroups.has(entry.name);
+        return `${renderGroupRow(entry, isCollapsed)}${isCollapsed ? "" : entry.items.map((item) => renderItemRow(item, true)).join("")}`;
+      }).join("");
+    }
+
+    function renderGroupRow(group, isCollapsed = false) {
+      const total = group.items.reduce((sum, item) => sum + item.quantity, 0);
+      const available = group.items.reduce((sum, item) => sum + availableQuantity(item), 0);
+      const checkedOut = group.items.reduce((sum, item) => sum + item.checkedOutQuantity, 0);
+      const service = group.items.reduce((sum, item) => sum + item.serviceQuantity, 0);
+      const category = [...new Set(group.items.map((item) => item.category).filter(Boolean))].join(", ");
+      const location = [...new Set(group.items.map((item) => item.location).filter(Boolean))].join(", ");
+      return `
+        <tr class="group-row">
+          <td colspan="2">
+            <button class="group-toggle" type="button" data-action="toggle-group" data-group="${escapeHtml(group.name)}" aria-label="${isCollapsed ? "Expand" : "Collapse"} ${escapeHtml(group.name)}">${isCollapsed ? "+" : "-"}</button>
+            <div class="group-name">${escapeHtml(group.name)}<span>${group.items.length} named item(s)</span></div>
+          </td>
+          <td>${escapeHtml(category)}</td>
+          <td><span class="status ${statusClass(displayGroupStatus(total, available, checkedOut, service))}">${escapeHtml(displayGroupStatus(total, available, checkedOut, service))}</span></td>
+          <td>${total}</td>
+          <td>${available}</td>
+          <td>${checkedOut}</td>
+          <td>${service}</td>
+          <td></td>
+          <td>${escapeHtml(location)}</td>
+          <td></td>
+          <td></td>
+        </tr>
+      `;
+    }
+
+    function displayGroupStatus(total, available, checkedOut, service) {
+      if (available === total) return "Available";
+      if (checkedOut === total) return "Checked Out";
+      if (service === total) return "In Service";
+      return "Partial";
+    }
+
+    function toggleGroup(groupName) {
+      if (!groupName) return;
+      if (state.collapsedGroups.has(groupName)) {
+        state.collapsedGroups.delete(groupName);
+      } else {
+        state.collapsedGroups.add(groupName);
+      }
+      renderInventory();
+    }
+
+    function renderItemRow(item, isChild = false) {
+      return `
+        <tr class="${isChild ? "child-row" : ""}">
+          <td>${escapeHtml(item.assetId)}</td>
+          <td><strong>${escapeHtml(item.name)}</strong><br><span class="note">${escapeHtml(item.notes)}</span></td>
+          <td>${escapeHtml(item.category)}</td>
+          <td><span class="status ${statusClass(displayStatus(item))}">${escapeHtml(displayStatus(item))}</span></td>
+          <td>${item.quantity}</td>
+          <td>${availableQuantity(item)}</td>
+          <td>${item.checkedOutQuantity}</td>
+          <td>${item.serviceQuantity}</td>
+          <td>${renderCheckouts(item)}</td>
+          <td>${escapeHtml(item.location)}</td>
+          <td>${escapeHtml(item.dueDate)}</td>
+          <td>
+            <div class="row-actions">
+              <button class="secondary" type="button" data-action="edit" data-id="${item.id}">Edit</button>
+              ${availableQuantity(item) > 0 ? `<button type="button" data-action="checkout" data-id="${item.id}">Check Out</button>` : ""}
+              ${availableQuantity(item) > 0 ? `<button class="warning" type="button" data-action="service" data-id="${item.id}">Service</button>` : ""}
+              ${item.serviceQuantity > 0 ? `<button class="secondary" type="button" data-action="available" data-id="${item.id}">Available</button>` : ""}
+              <button class="danger" type="button" data-action="delete" data-id="${item.id}">Delete</button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }
+
+    function renderCheckouts(item) {
+      if (!item.checkouts.length) return "";
+      return `
+        <div class="checkout-list">
+          ${item.checkouts.map((checkout) => `
+            <div class="checkout-entry">
+              <strong>${escapeHtml(checkout.person)} (${checkout.quantity})</strong>
+              <span>${escapeHtml(checkout.checkoutDate)}${checkout.dueDate ? " due " + escapeHtml(checkout.dueDate) : ""}</span>
+              ${checkout.notes ? `<span>${escapeHtml(checkout.notes)}</span>` : ""}
+              <button type="button" data-action="return" data-id="${item.id}" data-checkout-id="${checkout.id}">Return</button>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderLog() {
+      if (!state.log.length) {
+        els.usageLog.innerHTML = `<div class="empty">No usage events yet.</div>`;
+        return;
+      }
+
+      els.usageLog.innerHTML = state.log.slice(0, 100).map((entry) => `
+        <div class="log-entry">
+          <strong>${escapeHtml(entry.action)}: ${escapeHtml(entry.assetId)} - ${escapeHtml(entry.name)}</strong>
+          <span>${new Date(entry.date).toLocaleString()}${entry.details ? " | " + escapeHtml(entry.details) : ""}</span>
+        </div>
+      `).join("");
+    }
+
+    function render() {
+      renderSummary();
+      renderCategories();
+      renderInventory();
+      renderLog();
+    }
+
+    function escapeHtml(value) {
+      return String(value || "").replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      }[char]));
+    }
+
+    function parseCsv(text) {
+      const rows = [];
+      let row = [];
+      let cell = "";
+      let quoted = false;
+
+      for (let i = 0; i < text.length; i += 1) {
+        const char = text[i];
+        const next = text[i + 1];
+
+        if (char === '"' && quoted && next === '"') {
+          cell += '"';
+          i += 1;
+        } else if (char === '"') {
+          quoted = !quoted;
+        } else if (char === "," && !quoted) {
+          row.push(cell);
+          cell = "";
+        } else if ((char === "\n" || char === "\r") && !quoted) {
+          if (char === "\r" && next === "\n") i += 1;
+          row.push(cell);
+          if (row.some((value) => value.trim() !== "")) rows.push(row);
+          row = [];
+          cell = "";
+        } else {
+          cell += char;
+        }
+      }
+
+      row.push(cell);
+      if (row.some((value) => value.trim() !== "")) rows.push(row);
+      if (!rows.length) return [];
+
+      const headers = rows.shift().map((header) => header.trim().toLowerCase());
+      return rows.map((values) => {
+        const record = {};
+        headers.forEach((header, index) => {
+          record[header] = (values[index] || "").trim();
+        });
+        return record;
+      });
+    }
+
+    function csvEscape(value) {
+      const text = String(value || "");
+      return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+    }
+
+    function downloadCsv(filename, rows) {
+      const blob = new Blob([rows.map((row) => row.map(csvEscape).join(",")).join("\n")], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importRows(rows, mode) {
+      const incoming = rows.map(normalizeItem);
+      if (mode === "replace") {
+        state.inventory = incoming;
+      } else {
+        incoming.forEach((item) => {
+          const existing = state.inventory.findIndex((entry) => entry.assetId && entry.assetId === item.assetId);
+          if (existing >= 0) {
+            state.inventory[existing] = { ...state.inventory[existing], ...item, id: state.inventory[existing].id };
+          } else {
+            state.inventory.push(item);
+          }
+        });
+      }
+      state.log.unshift({
+        id: uid(),
+        itemId: "",
+        assetId: "CSV",
+        name: "Inventory import",
+        action: mode === "replace" ? "Imported replacement inventory" : "Imported merged inventory",
+        details: `${incoming.length} row(s) processed`,
+        date: new Date().toISOString()
+      });
+      save();
+      render();
+    }
+
+    els.equipmentForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const item = formItem();
+      const existing = state.inventory.findIndex((entry) => entry.id === item.id);
+      const duplicateAsset = state.inventory.some((entry) => entry.id !== item.id && entry.assetId === item.assetId && (!item.groupName || entry.groupName !== item.groupName));
+      if (duplicateAsset) {
+        alert("Asset ID already exists outside this group. Use a unique Asset ID or put matching items in the same Group.");
+        return;
+      }
+      if (existing >= 0) {
+        state.inventory[existing] = item;
+        logAction(item, "Edited", "Equipment details updated");
+      } else {
+        state.inventory.push(item);
+        logAction(item, "Added", "New equipment added to inventory");
+      }
+      save();
+      resetForm();
+      render();
+    });
+
+    els.resetBtn.addEventListener("click", resetForm);
+
+    els.themeToggleBtn.addEventListener("click", toggleTheme);
+
+    els.bulkForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const items = bulkItems();
+      if (!items.length) {
+        alert("Add at least one item line.");
+        return;
+      }
+      const assetIds = items.map((item) => item.assetId).filter(Boolean);
+      const sharedAssetId = els.bulkAssetId.value.trim();
+      const duplicateInBulk = !sharedAssetId && assetIds.find((assetId, index) => assetIds.indexOf(assetId) !== index);
+      if (duplicateInBulk) {
+        alert(`Duplicate Asset ID in bulk list: ${duplicateInBulk}`);
+        return;
+      }
+      const existingAsset = assetIds.find((assetId) => state.inventory.some((item) => item.assetId === assetId && item.groupName !== items[0].groupName));
+      if (existingAsset) {
+        alert(`Asset ID already exists outside this group: ${existingAsset}`);
+        return;
+      }
+      items.forEach((item) => {
+        state.inventory.push(item);
+        logAction(item, "Added", item.checkedOutQuantity ? `Bulk added and checked out to ${item.assignedTo}` : "Bulk added individual item");
+      });
+      save();
+      els.bulkItems.value = "";
+      render();
+    });
+
+    els.bulkClearBtn.addEventListener("click", () => {
+      els.bulkForm.reset();
+    });
+
+    els.inventoryBody.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+      const id = button.dataset.id;
+      const actions = {
+        "toggle-group": () => toggleGroup(button.dataset.group),
+        edit: editItem,
+        checkout: openCheckout,
+        return: (itemId) => returnItem(itemId, button.dataset.checkoutId),
+        service: serviceItem,
+        available: availableItem,
+        delete: deleteItem
+      };
+      actions[button.dataset.action](id);
+    });
+
+    els.checkoutForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const item = state.inventory.find((entry) => entry.id === els.checkoutItemId.value);
+      if (!item) return;
+      const available = availableQuantity(item);
+      const amount = Math.min(available, toWholeNumber(els.checkoutQuantity.value, 1));
+      if (!amount) {
+        alert("No available quantity to check out.");
+        return;
+      }
+      const checkout = {
+        id: uid(),
+        person: els.checkoutPerson.value.trim(),
+        quantity: amount,
+        checkoutDate: today(),
+        dueDate: els.checkoutDue.value,
+        notes: els.checkoutNotes.value.trim()
+      };
+      item.checkouts.push(checkout);
+      syncCheckoutSummary(item);
+      logAction(item, "Checked out", `${amount} to ${checkout.person}${checkout.dueDate ? " due " + checkout.dueDate : ""}${checkout.notes ? " | " + checkout.notes : ""}`);
+      save();
+      render();
+      els.checkoutDialog.close();
+    });
+
+    els.cancelCheckoutBtn.addEventListener("click", () => els.checkoutDialog.close());
+
+    [els.search, els.statusFilter, els.categoryFilter, els.sortBy].forEach((control) => {
+      control.addEventListener("input", () => {
+        state.filters.search = els.search.value;
+        state.filters.status = els.statusFilter.value;
+        state.filters.category = els.categoryFilter.value;
+        state.filters.sortBy = els.sortBy.value;
+        renderInventory();
+      });
+    });
+
+    els.csvFile.addEventListener("change", async () => {
+      const file = els.csvFile.files[0];
+      if (!file) return;
+      const text = await file.text();
+      importRows(parseCsv(text), els.importMode.value);
+      els.csvFile.value = "";
+    });
+
+    els.exportInventoryBtn.addEventListener("click", () => {
+      const headers = ["Group", "Asset ID", "Name", "Category", "Location", "Status", "Quantity", "Available Quantity", "Checked Out Quantity", "Service Quantity", "Assigned To", "Active Checkouts", "Checkout Date", "Due Date", "Notes"];
+      const rows = state.inventory.map((item) => [
+        item.groupName,
+        item.assetId,
+        item.name,
+        item.category,
+        item.location,
+        displayStatus(item),
+        item.quantity,
+        availableQuantity(item),
+        item.checkedOutQuantity,
+        item.serviceQuantity,
+        item.assignedTo,
+        item.checkouts.map((checkout) => `${checkout.person} (${checkout.quantity})${checkout.dueDate ? " due " + checkout.dueDate : ""}`).join("; "),
+        item.checkoutDate,
+        item.dueDate,
+        item.notes
+      ]);
+      downloadCsv(`equipment-inventory-${today()}.csv`, [headers, ...rows]);
+    });
+
+    els.exportCheckoutsBtn.addEventListener("click", () => {
+      const headers = ["Group", "Asset ID", "Name", "Person", "Quantity", "Checkout Date", "Due Date", "Notes"];
+      const rows = state.inventory.flatMap((item) => item.checkouts.map((checkout) => [
+        item.groupName,
+        item.assetId,
+        item.name,
+        checkout.person,
+        checkout.quantity,
+        checkout.checkoutDate,
+        checkout.dueDate,
+        checkout.notes
+      ]));
+      downloadCsv(`equipment-active-checkouts-${today()}.csv`, [headers, ...rows]);
+    });
+
+    els.exportLogBtn.addEventListener("click", () => {
+      const headers = ["Date", "Action", "Asset ID", "Name", "Details"];
+      const rows = state.log.map((entry) => [entry.date, entry.action, entry.assetId, entry.name, entry.details]);
+      downloadCsv(`equipment-usage-log-${today()}.csv`, [headers, ...rows]);
+    });
+
+    els.sampleBtn.addEventListener("click", () => {
+      importRows([
+        { assetId: "EQ-001", name: "Cordless Drill Kit", category: "Tools", groupName: "Drill Kits", location: "Shop", quantity: 4, status: "Available", notes: "Includes two batteries each" },
+        { assetId: "EQ-002", name: "Projector", category: "AV", groupName: "Projectors", location: "Conference Room", quantity: 3, checkedOutQuantity: 1, assignedTo: "Training Team", checkoutDate: today(), dueDate: today(), notes: "HDMI cable included" },
+        { assetId: "EQ-003", name: "Ladder 8 ft", category: "Facilities", location: "Warehouse", quantity: 6, serviceQuantity: 2, notes: "Inspect feet before use" }
+      ], "merge");
+    });
+
+    els.clearBtn.addEventListener("click", () => {
+      const confirmed = confirm("Clear all locally saved inventory and usage log data?");
+      if (!confirmed) return;
+      state.inventory = [];
+      state.log = [];
+      save();
+      resetForm();
+      render();
+    });
+
+    applyTheme(localStorage.getItem(THEME_KEY) || "light");
+    state.inventory = state.inventory.map(normalizeItem);
+    save();
+    render();
+  </script>
+</body>
+</html>
