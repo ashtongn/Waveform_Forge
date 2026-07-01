@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Waveform Forge — Educational Jamming Visualization</title>
+  <style>
+    :root {
+      --bg: #05070a;
+      --panel: rgba(11, 16, 24, 0.82);
+      --panel-strong: rgba(13, 18, 28, 0.96);
+      --border: rgba(121, 143, 166, 0.22);
+      --border-strong: rgba(135, 161, 187, 0.36);
+      --text: #e7edf5;
+      --muted: #8d9aaa;
+      --faint: #536171;
+      --blue: #3bb5ff;
+      --blue-soft: rgba(59, 181, 255, 0.18);
+      --red: #ff445f;
+      --red-soft: rgba(255, 68, 95, 0.18);
+      --green: #71f7bd;
+      --yellow: #f6c85f;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: var(--bg);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100%;
+      color: var(--text);
+      font-family: var(--sans);
+      background:
+        radial-gradient(circle at 18% 12%, rgba(43, 124, 255, 0.15), transparent 28rem),
+        radial-gradient(circle at 88% 18%, rgba(113, 247, 189, 0.08), transparent 28rem),
+        radial-gradient(circle at 50% 100%, rgba(255, 68, 95, 0.06), transparent 26rem),
+        linear-gradient(180deg, #05070a 0%, #080b10 45%, #05070a 100%);
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,0.75), rgba(0,0,0,0.05));
+      opacity: 0.55;
+      z-index: -2;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        180deg,
+        rgba(255,255,255,0.018) 0px,
+        rgba(255,255,255,0.018) 1px,
+        transparent 1px,
+        transparent 4px
+      );
+      opacity: 0.18;
+      z-index: -1;
+    }
+
+    .shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 28px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--border-strong);
+      background:
+        linear-gradient(135deg, rgba(59, 181, 255, 0.16), rgba(113, 247, 189, 0.06)),
+        rgba(255,255,255,0.03);
+      box-shadow: inset 0 0 28px rgba(59, 181, 255, 0.06);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mark::before,
+    .mark::after {
+      content: "";
+      position: absolute;
+      background: var(--blue);
+      opacity: 0.75;
+    }
+
+    .mark::before {
+      width: 22px;
+      height: 1px;
+      transform: rotate(-24deg);
+    }
+
+    .mark::after {
+      width: 1px;
+      height: 22px;
+      transform: rotate(-24deg);
+    }
+
+    .brand-text {
+      min-width: 0;
+    }
+
+    .eyebrow {
+      font-family: var(--mono);
+      color: var(--green);
+      font-size: 0.72rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.7rem, 3vw, 3.3rem);
+      line-height: 0.95;
+      letter-spacing: -0.055em;
+      text-transform: uppercase;
+    }
+
+    .safety-note {
+      font-family: var(--mono);
+      color: var(--muted);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.025);
+      text-align: right;
+    }
+
+    .hero {
+      border: 1px solid var(--border);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.015)),
+        var(--panel);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.32);
+      padding: clamp(18px, 3vw, 32px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(90deg, transparent, rgba(59,181,255,0.08), transparent),
+        linear-gradient(180deg, rgba(255,255,255,0.03), transparent 28%);
+      opacity: 0.65;
+      pointer-events: none;
+    }
+
+    .hero-grid {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1.35fr 0.65fr;
+      gap: 22px;
+      align-items: end;
+      z-index: 1;
+    }
+
+    .hero-copy p {
+      max-width: 760px;
+      margin: 18px 0 0;
+      color: #b9c4d2;
+      line-height: 1.65;
+      font-size: 1.01rem;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      background: rgba(5, 7, 10, 0.42);
+      padding: 12px;
+    }
+
+    .stat .label {
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .stat .value {
+      margin-top: 8px;
+      font-family: var(--mono);
+      color: var(--text);
+      font-size: 0.85rem;
+    }
+
+    .hero-aside {
+      border: 1px solid var(--border);
+      padding: 16px;
+      background: rgba(0,0,0,0.22);
+    }
+
+    .hero-aside-title {
+      font-family: var(--mono);
+      color: var(--blue);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font-size: 0.72rem;
+      margin-bottom: 12px;
+    }
+
+    .hero-aside ul {
+      padding: 0;
+      margin: 0;
+      list-style: none;
+      display: grid;
+      gap: 10px;
+    }
+
+    .hero-aside li {
+      color: #aeb9c8;
+      font-size: 0.88rem;
+      display: grid;
+      grid-template-columns: 18px 1fr;
+      gap: 8px;
+      align-items: start;
+    }
+
+    .hero-aside li::before {
+      content: "";
+      margin-top: 0.45rem;
+      width: 7px;
+      height: 7px;
+      border: 1px solid var(--green);
+      background: rgba(113,247,189,0.12);
+    }
+
+    .trainer {
+      margin-top: 22px;
+      border: 1px solid var(--border);
+      background: var(--panel-strong);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.26);
+      overflow: hidden;
+    }
+
+    .jam-nav {
+      display: flex;
+      gap: 8px;
+      padding: 12px;
+      overflow-x: auto;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.028);
+      scrollbar-color: rgba(141,154,170,0.35) transparent;
+    }
+
+    .jam-tab {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: rgba(5, 7, 10, 0.56);
+      color: #aeb9c8;
+      padding: 10px 12px;
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: 0.065em;
+      font-size: 0.72rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: 160ms ease;
+    }
+
+    .jam-tab:hover {
+      color: var(--text);
+      border-color: var(--border-strong);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .jam-tab[aria-selected="true"] {
+      color: #081016;
+      background: linear-gradient(180deg, #8af1ff, #3bb5ff);
+      border-color: rgba(144, 238, 255, 0.88);
+      box-shadow: 0 0 28px rgba(59, 181, 255, 0.18);
+    }
+
+    .trainer-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 330px;
+      gap: 0;
+    }
+
+    .visual-panel {
+      padding: 18px;
+      min-width: 0;
+      border-right: 1px solid var(--border);
+    }
+
+    .visual-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .readout {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.025);
+      color: var(--muted);
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      font-size: 0.68rem;
+      padding: 7px 9px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      display: inline-block;
+      background: var(--blue);
+      box-shadow: 0 0 16px rgba(59,181,255,0.72);
+    }
+
+    .dot.red {
+      background: var(--red);
+      box-shadow: 0 0 16px rgba(255,68,95,0.72);
+    }
+
+    .toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      user-select: none;
+      color: var(--text);
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-size: 0.75rem;
+      cursor: pointer;
+    }
+
+    .toggle input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .toggle-box {
+      width: 44px;
+      height: 24px;
+      border: 1px solid var(--border-strong);
+      background: rgba(255,255,255,0.045);
+      position: relative;
+      transition: 160ms ease;
+    }
+
+    .toggle-box::before {
+      content: "";
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      width: 14px;
+      height: 14px;
+      background: var(--muted);
+      transition: 160ms ease;
+    }
+
+    .toggle input:checked + .toggle-box {
+      border-color: rgba(255,68,95,0.85);
+      background: rgba(255,68,95,0.16);
+      box-shadow: 0 0 24px rgba(255,68,95,0.16);
+    }
+
+    .toggle input:checked + .toggle-box::before {
+      transform: translateX(20px);
+      background: var(--red);
+      box-shadow: 0 0 16px rgba(255,68,95,0.8);
+    }
+
+    .scope {
+      position: relative;
+      border: 1px solid rgba(135, 161, 187, 0.28);
+      background: #030507;
+      overflow: hidden;
+      min-height: 500px;
+    }
+
+    .scope::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.042) 1px, transparent 1px);
+      background-size: 48px 40px;
+      opacity: 0.35;
+      z-index: 1;
+    }
+
+    .scope::after {
+      content: "ABSTRACT FREQUENCY VIEW • EDUCATIONAL ONLY";
+      position: absolute;
+      top: 12px;
+      right: 14px;
+      z-index: 2;
+      font-family: var(--mono);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      font-size: 0.65rem;
+      color: rgba(231,237,245,0.42);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 500px;
+      position: relative;
+      z-index: 0;
+    }
+
+    .axis-labels {
+      pointer-events: none;
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: 12px;
+      z-index: 2;
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--mono);
+      color: rgba(231,237,245,0.42);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-size: 0.64rem;
+    }
+
+    .side-panel {
+      padding: 18px;
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 14px;
+    }
+
+    .panel-card {
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.025);
+      padding: 14px;
+    }
+
+    .panel-title {
+      font-family: var(--mono);
+      color: var(--green);
+      text-transform: uppercase;
+      letter-spacing: 0.13em;
+      font-size: 0.72rem;
+      margin-bottom: 10px;
+    }
+
+    .jam-name {
+      margin: 0;
+      font-size: 1.35rem;
+      line-height: 1.02;
+      letter-spacing: -0.04em;
+      text-transform: uppercase;
+    }
+
+    .description {
+      margin: 12px 0 0;
+      color: #aeb9c8;
+      line-height: 1.58;
+      font-size: 0.93rem;
+    }
+
+    .legend {
+      display: grid;
+      gap: 10px;
+    }
+
+    .legend-row {
+      display: grid;
+      grid-template-columns: 12px 1fr;
+      gap: 10px;
+      color: #aeb9c8;
+      font-size: 0.86rem;
+      line-height: 1.4;
+      align-items: start;
+    }
+
+    .legend-swatch {
+      width: 12px;
+      height: 12px;
+      margin-top: 3px;
+      background: var(--blue);
+      box-shadow: 0 0 18px rgba(59,181,255,0.4);
+    }
+
+    .legend-swatch.red {
+      background: var(--red);
+      box-shadow: 0 0 18px rgba(255,68,95,0.4);
+    }
+
+    .legend-swatch.grid {
+      background:
+        linear-gradient(rgba(255,255,255,0.45) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.45) 1px, transparent 1px);
+      background-size: 6px 6px;
+      box-shadow: none;
+      opacity: 0.55;
+    }
+
+    .notes {
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 0.86rem;
+    }
+
+    .notes strong {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .module-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .module {
+      border: 1px solid var(--border);
+      background: rgba(13, 18, 28, 0.72);
+      padding: 18px;
+      min-height: 150px;
+    }
+
+    .module-kicker {
+      font-family: var(--mono);
+      color: var(--blue);
+      font-size: 0.68rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .module h3 {
+      margin: 12px 0 8px;
+      font-size: 1.02rem;
+      text-transform: uppercase;
+      letter-spacing: -0.02em;
+    }
+
+    .module p {
+      margin: 0;
+      color: #aeb9c8;
+      line-height: 1.55;
+      font-size: 0.9rem;
+    }
+
+    .footer-note {
+      margin-top: 18px;
+      color: var(--faint);
+      font-family: var(--mono);
+      font-size: 0.69rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      line-height: 1.55;
+    }
+
+    @media (max-width: 900px) {
+      .hero-grid,
+      .trainer-body,
+      .module-row {
+        grid-template-columns: 1fr;
+      }
+
+      .visual-panel {
+        border-right: 0;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .topbar,
+      .visual-header {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .safety-note {
+        text-align: left;
+      }
+
+      canvas {
+        height: 420px;
+      }
+
+      .scope {
+        min-height: 420px;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .shell {
+        width: min(100% - 20px, 1180px);
+        padding-top: 16px;
+      }
+
+      .status-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .hero,
+      .visual-panel,
+      .side-panel {
+        padding: 14px;
+      }
+
+      .jam-tab {
+        padding: 9px 10px;
+        font-size: 0.66rem;
+      }
+
+      .scope::after {
+        left: 12px;
+        right: auto;
+        max-width: calc(100% - 24px);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 1ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark" aria-hidden="true"></div>
+        <div class="brand-text">
+          <div class="eyebrow">Waveform Forge / Training Lab</div>
+          <h1>Jamming Visualization</h1>
+        </div>
+      </div>
+      <div class="safety-note">Visual-only mockup • no RF values • no signal generation</div>
+    </header>
+
+    <section class="hero">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <div class="eyebrow">Educational spectrum behavior reference</div>
+          <p>
+            This standalone page demonstrates how different jamming categories can be visually represented
+            from a frequency-domain perspective. It is intentionally abstract: the axis is unlabeled,
+            the amplitudes are fictional, and the animation does not transmit, propagate, synthesize, or
+            provide operational signal parameters.
+          </p>
+          <div class="status-grid" aria-label="Training page attributes">
+            <div class="stat">
+              <div class="label">Mode</div>
+              <div class="value">Educational</div>
+            </div>
+            <div class="stat">
+              <div class="label">Signal data</div>
+              <div class="value">Fictional</div>
+            </div>
+            <div class="stat">
+              <div class="label">Output</div>
+              <div class="value">Canvas only</div>
+            </div>
+          </div>
+        </div>
+
+        <aside class="hero-aside">
+          <div class="hero-aside-title">Layout intent</div>
+          <ul>
+            <li>Top navigation selects the jamming category.</li>
+            <li>The blue trace represents a small training signal.</li>
+            <li>The red trace appears only when “jamming active” is toggled.</li>
+            <li>The lower waterfall gives learners a time-history view.</li>
+          </ul>
+        </aside>
+      </div>
+    </section>
+
+    <section class="trainer" aria-label="Jamming type trainer">
+      <nav class="jam-nav" id="jamNav" aria-label="Jamming type selector"></nav>
+
+      <div class="trainer-body">
+        <div class="visual-panel">
+          <div class="visual-header">
+            <div class="readout">
+              <span class="chip"><span class="dot"></span>Training signal</span>
+              <span class="chip"><span class="dot red"></span>Jamming overlay</span>
+              <span class="chip" id="activeReadout">Overlay inactive</span>
+            </div>
+
+            <label class="toggle">
+              <input type="checkbox" id="jamToggle" />
+              <span class="toggle-box" aria-hidden="true"></span>
+              Jamming active
+            </label>
+          </div>
+
+          <div class="scope">
+            <canvas id="spectrumCanvas" width="1200" height="620" aria-label="Animated abstract frequency visualization"></canvas>
+            <div class="axis-labels" aria-hidden="true">
+              <span>Lower abstract bins</span>
+              <span>Center observation area</span>
+              <span>Upper abstract bins</span>
+            </div>
+          </div>
+        </div>
+
+        <aside class="side-panel">
+          <div class="panel-card">
+            <div class="panel-title">Selected type</div>
+            <h2 class="jam-name" id="jamName">narrowband_noise</h2>
+            <p class="description" id="jamDescription"></p>
+          </div>
+
+          <div class="panel-card">
+            <div class="panel-title">Legend</div>
+            <div class="legend">
+              <div class="legend-row">
+                <span class="legend-swatch"></span>
+                <span>Blue represents the notional training signal learners are trying to observe.</span>
+              </div>
+              <div class="legend-row">
+                <span class="legend-swatch red"></span>
+                <span>Red represents the selected jamming pattern after the educational overlay is enabled.</span>
+              </div>
+              <div class="legend-row">
+                <span class="legend-swatch grid"></span>
+                <span>The grid and bins are fictional and exist only to show relative behavior.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel-card notes">
+            <div class="panel-title">Instructor note</div>
+            <strong>Safe reference behavior:</strong> keep this as a conceptual front-end animation.
+            When agents replicate it into the app, they should preserve the public-safe wording,
+            avoid real-world parameters, and treat each visualization as a simplified classroom model.
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="module-row" aria-label="Implementation notes">
+      <article class="module">
+        <div class="module-kicker">Reference / 01</div>
+        <h3>Single HTML file</h3>
+        <p>Drop this into a browser to preview the layout before translating it into React components.</p>
+      </article>
+      <article class="module">
+        <div class="module-kicker">Reference / 02</div>
+        <h3>Canvas animation</h3>
+        <p>The visualization is rendered in-browser using canvas. There are no network calls or external libraries.</p>
+      </article>
+      <article class="module">
+        <div class="module-kicker">Reference / 03</div>
+        <h3>Agent handoff</h3>
+        <p>Use this as a visual target for a future protected training route inside Waveform Forge.</p>
+      </article>
+    </section>
+
+    <div class="footer-note">
+      This mockup is intentionally abstract and non-operational. It does not contain CUI, tactical data,
+      RF values, transmit logic, or instructions for affecting communications systems.
+    </div>
+  </main>
+
+  <script>
+    const jamTypes = [
+      {
+        id: "narrowband_noise",
+        label: "narrowband_noise",
+        description: "Shows a compact red noise-like overlay concentrated near the blue training signal. Useful for explaining localized spectral overlap in a non-operational way."
+      },
+      {
+        id: "FM_cosine",
+        label: "FM_cosine",
+        description: "Shows a smooth red lobe that breathes side-to-side around the training signal. This is a stylized teaching visualization, not a parameterized signal model."
+      },
+      {
+        id: "swept_cosine",
+        label: "swept_cosine",
+        description: "Shows a narrow red peak moving across the observation area so learners can see the concept of a sweeping spectral feature."
+      },
+      {
+        id: "swept_phasors",
+        label: "swept_phasors",
+        description: "Shows several red points drifting as a group across the spectrum, representing discrete moving tones in a simplified visual form."
+      },
+      {
+        id: "phasor_tones",
+        label: "phasor_tones",
+        description: "Shows multiple stable red spikes at separated positions, helping learners compare discrete tone-like behavior against the blue reference signal."
+      },
+      {
+        id: "cosine_tones",
+        label: "cosine_tones",
+        description: "Shows evenly spaced red peaks with gentle amplitude motion, giving a classroom-style view of repeated tonal components."
+      },
+      {
+        id: "noise_tones",
+        label: "noise_tones",
+        description: "Shows red tone peaks mixed with a rougher noise floor so learners can identify a combined tonal-plus-noise pattern."
+      },
+      {
+        id: "chunk_noise",
+        label: "chunk_noise",
+        description: "Shows blocky red regions appearing in chunks across nearby bins, emphasizing intermittent occupied regions rather than a continuous smooth trace."
+      },
+      {
+        id: "swept_noise",
+        label: "swept_noise",
+        description: "Shows a broader red noise region moving across the observation area, useful for teaching the difference between swept narrow features and swept broad features."
+      }
+    ];
+
+    const canvas = document.getElementById("spectrumCanvas");
+    const ctx = canvas.getContext("2d");
+    const nav = document.getElementById("jamNav");
+    const jamToggle = document.getElementById("jamToggle");
+    const activeReadout = document.getElementById("activeReadout");
+    const jamName = document.getElementById("jamName");
+    const jamDescription = document.getElementById("jamDescription");
+
+    let currentType = jamTypes[0];
+    let animationStart = performance.now();
+    let historyRows = [];
+    let reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    function makeTabs() {
+      jamTypes.forEach((type, index) => {
+        const button = document.createElement("button");
+        button.className = "jam-tab";
+        button.type = "button";
+        button.textContent = type.label;
+        button.setAttribute("role", "tab");
+        button.setAttribute("aria-selected", index === 0 ? "true" : "false");
+        button.addEventListener("click", () => {
+          currentType = type;
+          [...nav.children].forEach(child => child.setAttribute("aria-selected", "false"));
+          button.setAttribute("aria-selected", "true");
+          jamName.textContent = type.label;
+          jamDescription.textContent = type.description;
+          historyRows = [];
+        });
+        nav.appendChild(button);
+      });
+      jamDescription.textContent = currentType.description;
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const ratio = window.devicePixelRatio || 1;
+      canvas.width = Math.max(800, Math.floor(rect.width * ratio));
+      canvas.height = Math.max(420, Math.floor(rect.height * ratio));
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function gaussian(x, center, width, amp) {
+      const d = (x - center) / width;
+      return amp * Math.exp(-d * d);
+    }
+
+    function pseudoNoise(i, t, seed = 0) {
+      const n = Math.sin(i * 12.9898 + seed * 78.233 + Math.floor(t * 14) * 37.719) * 43758.5453;
+      return n - Math.floor(n);
+    }
+
+    function trainingSignal(x, t) {
+      const center = 0.5 + Math.sin(t * 0.55) * 0.015;
+      const main = gaussian(x, center, 0.014, 0.62);
+      const skirt = gaussian(x, center, 0.045, 0.16);
+      const drift = Math.sin((x * 36) + t * 2.2) * 0.012;
+      return main + skirt + drift;
+    }
+
+    function jammingValue(type, x, t, i) {
+      switch (type.id) {
+        case "narrowband_noise": {
+          const c = 0.5 + Math.sin(t * 1.1) * 0.012;
+          const base = gaussian(x, c, 0.024, 0.72);
+          const rough = (pseudoNoise(i, t, 1) - 0.5) * 0.22;
+          return clamp(base + rough * gaussian(x, c, 0.045, 1), 0, 1);
+        }
+        case "FM_cosine": {
+          const c = 0.5 + Math.sin(t * 1.7) * 0.09;
+          return gaussian(x, c, 0.04, 0.55) + gaussian(x, c + 0.06 * Math.sin(t * 2.2), 0.024, 0.3);
+        }
+        case "swept_cosine": {
+          const c = 0.12 + ((t * 0.12) % 0.76);
+          return gaussian(x, c, 0.018, 0.82) + gaussian(x, c, 0.055, 0.14);
+        }
+        case "swept_phasors": {
+          let sum = 0;
+          const base = 0.14 + ((t * 0.08) % 0.68);
+          for (let k = 0; k < 5; k++) {
+            const c = base + (k - 2) * 0.035 + Math.sin(t * 1.4 + k) * 0.006;
+            sum += gaussian(x, c, 0.008, 0.45);
+          }
+          return sum;
+        }
+        case "phasor_tones": {
+          const centers = [0.29, 0.38, 0.47, 0.58, 0.69];
+          return centers.reduce((sum, c, k) => {
+            const wobble = Math.sin(t * 1.1 + k * 0.8) * 0.004;
+            return sum + gaussian(x, c + wobble, 0.007, 0.62);
+          }, 0);
+        }
+        case "cosine_tones": {
+          const centers = [0.24, 0.34, 0.44, 0.54, 0.64, 0.74];
+          return centers.reduce((sum, c, k) => {
+            const amp = 0.42 + Math.sin(t * 2.2 + k) * 0.14;
+            return sum + gaussian(x, c, 0.009, amp);
+          }, 0);
+        }
+        case "noise_tones": {
+          const centers = [0.33, 0.5, 0.67];
+          const tone = centers.reduce((sum, c, k) => sum + gaussian(x, c, 0.01, 0.58 + Math.sin(t * 2 + k) * 0.08), 0);
+          const band = gaussian(x, 0.5, 0.22, 0.22) * (0.55 + pseudoNoise(i, t, 4) * 0.7);
+          return tone + band;
+        }
+        case "chunk_noise": {
+          const chunks = [
+            [0.22, 0.31],
+            [0.43, 0.53],
+            [0.61, 0.73]
+          ];
+          let sum = 0;
+          chunks.forEach((chunk, k) => {
+            const flicker = pseudoNoise(k, t * 0.55, 8) > 0.32 ? 1 : 0.25;
+            if (x > chunk[0] && x < chunk[1]) {
+              sum += (0.36 + pseudoNoise(i, t, k + 10) * 0.36) * flicker;
+            }
+          });
+          return sum;
+        }
+        case "swept_noise": {
+          const c = 0.18 + ((t * 0.07) % 0.64);
+          const envelope = gaussian(x, c, 0.09, 0.72);
+          const rough = 0.58 + pseudoNoise(i, t, 12) * 0.75;
+          return envelope * rough;
+        }
+        default:
+          return 0;
+      }
+    }
+
+    function buildSpectrum(t) {
+      const bins = 220;
+      const blue = [];
+      const red = [];
+      const active = jamToggle.checked;
+
+      for (let i = 0; i < bins; i++) {
+        const x = i / (bins - 1);
+        const floor = 0.055 + pseudoNoise(i, t * 0.4, 20) * 0.035;
+        const b = clamp(floor + trainingSignal(x, t), 0, 1);
+        const r = active ? clamp(jammingValue(currentType, x, t, i), 0, 1) : 0;
+        blue.push(b);
+        red.push(r);
+      }
+      return { blue, red, active };
+    }
+
+    function drawLine(values, area, color, fillColor, glowColor, width = 2) {
+      const { x, y, w, h } = area;
+      ctx.save();
+      ctx.beginPath();
+      values.forEach((value, i) => {
+        const px = x + (i / (values.length - 1)) * w;
+        const py = y + h - value * h;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      });
+
+      ctx.shadowColor = glowColor;
+      ctx.shadowBlur = 16;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.stroke();
+
+      ctx.lineTo(x + w, y + h);
+      ctx.lineTo(x, y + h);
+      ctx.closePath();
+      ctx.fillStyle = fillColor;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function pushHistory(spectrum) {
+      const row = [];
+      const bins = spectrum.blue.length;
+      for (let i = 0; i < bins; i++) {
+        const blue = spectrum.blue[i];
+        const red = spectrum.red[i];
+        row.push({
+          blue,
+          red,
+          combined: Math.max(blue * 0.8, red)
+        });
+      }
+
+      historyRows.unshift(row);
+      if (historyRows.length > 126) historyRows.pop();
+    }
+
+    function drawWaterfall(area) {
+      const { x, y, w, h } = area;
+      const rowHeight = h / 126;
+      const bins = historyRows[0]?.length || 220;
+      const colWidth = w / bins;
+
+      ctx.save();
+      ctx.fillStyle = "rgba(3, 5, 7, 0.98)";
+      ctx.fillRect(x, y, w, h);
+
+      for (let rowIndex = 0; rowIndex < historyRows.length; rowIndex++) {
+        const row = historyRows[rowIndex];
+        const age = 1 - rowIndex / 126;
+        for (let i = 0; i < row.length; i++) {
+          const cell = row[i];
+          if (cell.red > 0.05) {
+            ctx.fillStyle = `rgba(255, 68, 95, ${clamp(cell.red * 0.75 * age, 0, 0.82)})`;
+          } else {
+            ctx.fillStyle = `rgba(59, 181, 255, ${clamp(cell.blue * 0.55 * age, 0, 0.52)})`;
+          }
+          ctx.fillRect(x + i * colWidth, y + rowIndex * rowHeight, colWidth + 0.5, rowHeight + 0.5);
+        }
+      }
+
+      ctx.strokeStyle = "rgba(135,161,187,0.22)";
+      ctx.strokeRect(x, y, w, h);
+      ctx.restore();
+    }
+
+    function drawLabels(areaTop, areaBottom) {
+      ctx.save();
+      ctx.font = "11px " + getComputedStyle(document.documentElement).getPropertyValue("--mono");
+      ctx.fillStyle = "rgba(231,237,245,0.42)";
+      ctx.textBaseline = "top";
+      ctx.fillText("INSTANTANEOUS SPECTRUM", areaTop.x + 12, areaTop.y + 10);
+      ctx.fillText("WATERFALL HISTORY", areaBottom.x + 12, areaBottom.y + 10);
+
+      ctx.textAlign = "right";
+      ctx.fillStyle = jamToggle.checked ? "rgba(255,68,95,0.86)" : "rgba(141,154,170,0.56)";
+      ctx.fillText(jamToggle.checked ? "OVERLAY ACTIVE" : "OVERLAY STANDBY", areaTop.x + areaTop.w - 12, areaTop.y + 10);
+      ctx.restore();
+    }
+
+    function drawFrame(now) {
+      const rect = canvas.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      const t = reducedMotion ? 0.1 : (now - animationStart) / 1000;
+
+      ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = "#030507";
+      ctx.fillRect(0, 0, w, h);
+
+      const pad = 28;
+      const spectrumArea = { x: pad, y: 44, w: w - pad * 2, h: h * 0.43 };
+      const waterfallArea = { x: pad, y: spectrumArea.y + spectrumArea.h + 42, w: w - pad * 2, h: h - spectrumArea.y - spectrumArea.h - 82 };
+
+      const spectrum = buildSpectrum(t);
+
+      if (!reducedMotion || historyRows.length === 0) {
+        pushHistory(spectrum);
+      }
+
+      ctx.save();
+      ctx.strokeStyle = "rgba(135,161,187,0.18)";
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 6; i++) {
+        const y = spectrumArea.y + (i / 6) * spectrumArea.h;
+        ctx.beginPath();
+        ctx.moveTo(spectrumArea.x, y);
+        ctx.lineTo(spectrumArea.x + spectrumArea.w, y);
+        ctx.stroke();
+      }
+      for (let i = 0; i <= 12; i++) {
+        const x = spectrumArea.x + (i / 12) * spectrumArea.w;
+        ctx.beginPath();
+        ctx.moveTo(x, spectrumArea.y);
+        ctx.lineTo(x, spectrumArea.y + spectrumArea.h);
+        ctx.stroke();
+      }
+      ctx.strokeStyle = "rgba(135,161,187,0.24)";
+      ctx.strokeRect(spectrumArea.x, spectrumArea.y, spectrumArea.w, spectrumArea.h);
+      ctx.restore();
+
+      drawLine(spectrum.blue, spectrumArea, "rgba(59,181,255,0.96)", "rgba(59,181,255,0.12)", "rgba(59,181,255,0.7)", 2);
+
+      if (spectrum.active) {
+        drawLine(spectrum.red, spectrumArea, "rgba(255,68,95,0.95)", "rgba(255,68,95,0.18)", "rgba(255,68,95,0.75)", 2.2);
+      }
+
+      drawWaterfall(waterfallArea);
+      drawLabels(spectrumArea, waterfallArea);
+
+      activeReadout.textContent = jamToggle.checked ? "Overlay active" : "Overlay inactive";
+
+      if (!reducedMotion) {
+        requestAnimationFrame(drawFrame);
+      }
+    }
+
+    makeTabs();
+    resizeCanvas();
+
+    window.addEventListener("resize", () => {
+      resizeCanvas();
+      historyRows = [];
+    });
+
+    jamToggle.addEventListener("change", () => {
+      historyRows = [];
+    });
+
+    requestAnimationFrame(drawFrame);
+  </script>
+</body>
+</html>
