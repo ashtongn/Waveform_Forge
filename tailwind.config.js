@@ -12,6 +12,7 @@ export default {
           text: '#e2e8f0',
           muted: '#94a3b8',
           accent: '#22d3ee',
+          signal: '#4ade80',
         },
       },
       fontFamily: {

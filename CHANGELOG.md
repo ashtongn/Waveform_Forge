@@ -8,6 +8,33 @@ fixes bump the **patch** number.
 
 ---
 
+## v0.2.2 — Home Page Signal
+
+**Pushed:** 2026-07-01
+
+A visual refresh for the public landing page: a large, animated
+frequency-spectrum signal now spans the full width of the page above the title.
+
+### Added
+- **Frequency signal** (`FrequencySignal`): a full-width Canvas 2D
+  spectrum-analyzer trace — a jagged noise floor with a few drifting peaks —
+  rendered above the home page title. It is DPR-aware, resizes with the
+  viewport, pauses its animation when scrolled off-screen, and falls back to a
+  single static frame under `prefers-reduced-motion`. Decorative only
+  (`aria-hidden`), with no real signal data.
+
+### Changed
+- **Layout**: `Layout` now takes an opt-in `bleed` prop that drops the
+  max-width and horizontal padding for full-width pages; the home route uses it.
+  All other pages are unchanged.
+- **Home page**: restructured so the signal spans edge-to-edge while the title,
+  description, CTAs, and module cards keep the standard reading column. The
+  auth-aware calls to action are preserved.
+- **Palette**: added a `forge.signal` accent color.
+- **Version**: `0.2.1` → `0.2.2`.
+
+---
+
 ## v0.2.1 — Equipment Tracker
 
 **Pushed:** 2026-07-01

@@ -14,9 +14,13 @@ import AdminHome from './routes/admin/AdminHome';
 export default function App() {
   return (
     <Routes>
+      {/* Full-bleed Home page */}
+      <Route element={<Layout bleed />}>
+        <Route index element={<Home />} />
+      </Route>
+
       {/* Standard-width shell: public + auth pages */}
       <Route element={<Layout />}>
-        <Route index element={<Home />} />
         <Route path="about" element={<About />} />
         <Route path="login" element={<Login />} />
         <Route path="signup" element={<SignUp />} />
