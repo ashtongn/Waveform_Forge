@@ -34,6 +34,9 @@ export default function Header({ containerClass = 'max-w-5xl' }: HeaderProps) {
           <NavLink to="/about" className={navLinkClass}>
             About
           </NavLink>
+          <NavLink to="/training" className={navLinkClass}>
+            Training
+          </NavLink>
 
           {isApproved && (
             <NavLink to="/app" end className={navLinkClass}>
