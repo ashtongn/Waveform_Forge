@@ -14,13 +14,19 @@ import AdminHome from './routes/admin/AdminHome';
 export default function App() {
   return (
     <Routes>
+      {/* Standard-width shell: public + auth pages */}
       <Route element={<Layout />}>
-        {/* Public */}
         <Route index element={<Home />} />
         <Route path="about" element={<About />} />
         <Route path="login" element={<Login />} />
         <Route path="signup" element={<SignUp />} />
 
+        <Route path="404" element={<NotFound />} />
+        <Route path="*" element={<Navigate to="/404" replace />} />
+      </Route>
+
+      {/* Wide shell: signed-in app areas (member + admin) */}
+      <Route element={<Layout wide />}>
         {/* Approved members only */}
         <Route element={<RequireApproved />}>
           <Route path="app" element={<MemberHome />} />
@@ -31,9 +37,6 @@ export default function App() {
         <Route element={<RequireAdmin />}>
           <Route path="admin" element={<AdminHome />} />
         </Route>
-
-        <Route path="404" element={<NotFound />} />
-        <Route path="*" element={<Navigate to="/404" replace />} />
       </Route>
     </Routes>
   );

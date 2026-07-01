@@ -308,76 +308,78 @@ export default function EquipmentTracker() {
         <StatCard label="In service" value={summary.service} />
       </div>
 
-      <div className="rounded-lg border border-forge-border bg-forge-panel/50 p-5">
-        <h2 className="mb-4 text-lg font-semibold">
-          {editingLive ? 'Edit equipment' : 'Add equipment'}
-        </h2>
-        <EquipmentForm
-          editing={editingLive}
-          onSave={handleSave}
-          onCancelEdit={() => setEditing(null)}
-        />
-      </div>
-
-      <div className="space-y-4">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search asset, name, person…"
-            className={controlClass}
-            aria-label="Search equipment"
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(300px,360px)_1fr] lg:items-start">
+        <div className="rounded-lg border border-forge-border bg-forge-panel/50 p-5 lg:sticky lg:top-6">
+          <h2 className="mb-4 text-lg font-semibold">
+            {editingLive ? 'Edit equipment' : 'Add equipment'}
+          </h2>
+          <EquipmentForm
+            editing={editingLive}
+            onSave={handleSave}
+            onCancelEdit={() => setEditing(null)}
           />
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
-            className={controlClass}
-            aria-label="Filter by status"
-          >
-            <option value="">All statuses</option>
-            <option value="Available">Available</option>
-            <option value="Checked Out">Checked Out</option>
-            <option value="In Service">In Service</option>
-          </select>
-          <select
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-            className={controlClass}
-            aria-label="Filter by category"
-          >
-            <option value="">All categories</option>
-            {categories.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as SortKey)}
-            className={controlClass}
-            aria-label="Sort by"
-          >
-            <option value="assetId">Sort: Asset ID</option>
-            <option value="name">Sort: Name</option>
-            <option value="category">Sort: Category</option>
-          </select>
         </div>
 
-        <EquipmentTable
-          items={filtered}
-          collapsedGroups={collapsedGroups}
-          onToggleGroup={toggleGroup}
-          onEdit={(item) => {
-            setEditing(item);
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-          }}
-          onDelete={handleDelete}
-          onCheckout={setCheckoutTarget}
-          onReturn={handleReturn}
-          onService={handleService}
-          onAvailable={handleAvailable}
-        />
+        <div className="min-w-0 space-y-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search asset, name, person…"
+              className={controlClass}
+              aria-label="Search equipment"
+            />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}
+              className={controlClass}
+              aria-label="Filter by status"
+            >
+              <option value="">All statuses</option>
+              <option value="Available">Available</option>
+              <option value="Checked Out">Checked Out</option>
+              <option value="In Service">In Service</option>
+            </select>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className={controlClass}
+              aria-label="Filter by category"
+            >
+              <option value="">All categories</option>
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortKey)}
+              className={controlClass}
+              aria-label="Sort by"
+            >
+              <option value="assetId">Sort: Asset ID</option>
+              <option value="name">Sort: Name</option>
+              <option value="category">Sort: Category</option>
+            </select>
+          </div>
+
+          <EquipmentTable
+            items={filtered}
+            collapsedGroups={collapsedGroups}
+            onToggleGroup={toggleGroup}
+            onEdit={(item) => {
+              setEditing(item);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onDelete={handleDelete}
+            onCheckout={setCheckoutTarget}
+            onReturn={handleReturn}
+            onService={handleService}
+            onAvailable={handleAvailable}
+          />
+        </div>
       </div>
 
       {checkoutTarget && (

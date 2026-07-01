@@ -10,14 +10,18 @@ const navLinkClass = ({ isActive }: { isActive: boolean }) =>
       : 'text-forge-muted hover:text-forge-text',
   ].join(' ');
 
-export default function Header() {
+interface HeaderProps {
+  containerClass?: string;
+}
+
+export default function Header({ containerClass = 'max-w-5xl' }: HeaderProps) {
   const { user, profile, loading } = useAuth();
   const isApproved = profile?.status === 'approved';
   const isAdmin = profile?.role === 'admin';
 
   return (
     <header className="border-b border-forge-border bg-forge-panel/60 backdrop-blur">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
+      <div className={`mx-auto flex w-full ${containerClass} items-center justify-between px-6 py-4`}>
         <NavLink to="/" className="flex items-center gap-2">
           <span className="font-mono text-lg font-semibold tracking-tight text-forge-accent">
             ⌁ Waveform&nbsp;Forge

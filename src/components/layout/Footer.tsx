@@ -1,7 +1,11 @@
-export default function Footer() {
+interface FooterProps {
+  containerClass?: string;
+}
+
+export default function Footer({ containerClass = 'max-w-5xl' }: FooterProps) {
   return (
     <footer className="border-t border-forge-border bg-forge-panel/40">
-      <div className="mx-auto max-w-5xl px-6 py-6 text-xs text-forge-muted">
+      <div className={`mx-auto w-full ${containerClass} px-6 py-6 text-xs text-forge-muted`}>
         <p>
           Waveform Forge — internal operations hub. Public information only; do
           not post controlled, export-controlled, or operational data here.

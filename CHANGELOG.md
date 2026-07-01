@@ -8,6 +8,42 @@ fixes bump the **patch** number.
 
 ---
 
+## v0.2.1 — Equipment Tracker
+
+**Pushed:** 2026-07-01
+
+First member feature: a shared team equipment tracker, plus a wider app layout
+to give data-dense pages room to breathe.
+
+### Added
+- **Equipment tracker** (`/app/equipment`, approved members only): add / edit /
+  delete gear, per-person check-out and (partial) return, mark units in service
+  and back to available, live search, status/category filters, sort, summary
+  stat cards, and collapsible groups. Records live in a shared `equipment`
+  Firestore collection; status and available/checked-out counts are derived,
+  not stored.
+- **Navigation**: an "Equipment" header link and a member-home card link into
+  the tracker (both visible to approved members only).
+
+### Changed
+- **Layout width**: `Layout` now takes a `wide` prop. Signed-in app pages
+  (`/app`, `/app/equipment`, `/admin`) render in a wide shell
+  (`max-w-screen-2xl`) so tables no longer force horizontal scrolling; public
+  and auth pages keep the standard `max-w-5xl` reading width. Header and footer
+  share the active width so their edges stay aligned. New app pages inherit the
+  wide shell automatically.
+- **Equipment layout**: the add/edit form and inventory sit side by side (form
+  is sticky on large screens), matching the reference workflow.
+- **Version**: `0.2.0` → `0.2.1`.
+
+### Firestore
+- Adds one security-rules block for the `equipment` collection
+  (`allow read, create, update, delete: if isApproved() || isAdmin()`). No
+  indexes required (filtering/sorting is client-side). No new manual console
+  steps for this release beyond publishing the rules.
+
+---
+
 ## v0.2.0 — Phase 1: Authentication & Admin Approval
 
 **Pushed:** 2026-07-01

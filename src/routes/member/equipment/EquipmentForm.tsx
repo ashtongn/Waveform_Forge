@@ -70,7 +70,7 @@ export default function EquipmentForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3">
         <div className="space-y-1">
           <label htmlFor="f-assetId" className={labelClass}>
             Asset ID
