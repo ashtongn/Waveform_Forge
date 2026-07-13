@@ -38,7 +38,7 @@ export default function TaskDialog({
     title: '',
     description: '',
     status: defaultStatus,
-    assigneeUid: null,
+    assignee: '',
     dueDate: '',
     difficulty: 'simple',
     priority: 4,
@@ -51,7 +51,7 @@ export default function TaskDialog({
         title: editing.title,
         description: editing.description,
         status: editing.status,
-        assigneeUid: editing.assigneeUid,
+        assignee: editing.assigneeName,
         dueDate: editing.dueDate,
         difficulty: editing.difficulty,
         priority: editing.priority,
@@ -147,19 +147,19 @@ export default function TaskDialog({
               <label htmlFor="t-assignee" className={labelClass}>
                 Assignee
               </label>
-              <select
+              <input
                 id="t-assignee"
-                value={values.assigneeUid ?? ''}
-                onChange={(e) => set('assigneeUid', e.target.value || null)}
+                list="t-assignee-options"
+                value={values.assignee}
+                onChange={(e) => set('assignee', e.target.value)}
+                placeholder="Person or group (e.g. Engineers)"
                 className={inputClass}
-              >
-                <option value="">Unassigned</option>
+              />
+              <datalist id="t-assignee-options">
                 {members.map((m) => (
-                  <option key={m.uid} value={m.uid}>
-                    {m.email}
-                  </option>
+                  <option key={m.uid} value={m.email} />
                 ))}
-              </select>
+              </datalist>
             </div>
 
             <div className="space-y-1">
