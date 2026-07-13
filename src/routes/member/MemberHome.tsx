@@ -33,6 +33,18 @@ export default function MemberHome() {
             Add gear, check it out to people, and track what&apos;s in service.
           </p>
         </Link>
+        <Link
+          to="/app/kanban"
+          className="rounded-lg border border-forge-border bg-forge-panel/50 p-5 transition hover:border-forge-accent"
+        >
+          <h2 className="text-lg font-semibold text-forge-text">
+            Kanban board
+          </h2>
+          <p className="mt-1 text-sm text-forge-muted">
+            Plan and track the team&apos;s work across backlog, in-progress, and
+            done.
+          </p>
+        </Link>
       </div>
     </section>
   );

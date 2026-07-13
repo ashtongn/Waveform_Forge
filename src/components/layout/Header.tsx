@@ -48,6 +48,11 @@ export default function Header({ containerClass = 'max-w-5xl' }: HeaderProps) {
               Equipment
             </NavLink>
           )}
+          {isApproved && (
+            <NavLink to="/app/kanban" className={navLinkClass}>
+              Kanban
+            </NavLink>
+          )}
           {isAdmin && (
             <NavLink to="/admin" className={navLinkClass}>
               Admin
