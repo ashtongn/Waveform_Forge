@@ -23,9 +23,8 @@ export interface TaskWriteData {
   title: string;
   description: string;
   status: TaskStatus;
-  assigneeUid: string | null;
-  // Cached email/label of the assignee at assignment time, so a card still
-  // shows something sensible if that member is later removed.
+  // Free-text assignee: an individual (typically their email) or a group such
+  // as "Engineers" or "Programmers". Displayed on the card as typed.
   assigneeName: string;
   dueDate: string; // YYYY-MM-DD, or '' when unset
   difficulty: Difficulty;
@@ -48,7 +47,7 @@ export interface TaskFormValues {
   title: string;
   description: string;
   status: TaskStatus;
-  assigneeUid: string | null;
+  assignee: string;
   dueDate: string;
   difficulty: Difficulty;
   priority: Priority;

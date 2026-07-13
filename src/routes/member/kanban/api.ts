@@ -33,7 +33,6 @@ export function subscribeToTasks(
           title: data.title ?? '',
           description: data.description ?? '',
           status: (data.status ?? 'backlog') as TaskStatus,
-          assigneeUid: data.assigneeUid ?? null,
           assigneeName: data.assigneeName ?? '',
           dueDate: data.dueDate ?? '',
           difficulty: data.difficulty ?? 'simple',

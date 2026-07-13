@@ -163,13 +163,11 @@ export default function KanbanBoard() {
 
   async function handleSave(values: TaskFormValues) {
     setError(null);
-    const assignee = members.find((m) => m.uid === values.assigneeUid);
     const base = {
       title: values.title,
       description: values.description.trim(),
       status: values.status,
-      assigneeUid: values.assigneeUid,
-      assigneeName: assignee?.email ?? '',
+      assigneeName: values.assignee.trim(),
       dueDate: values.dueDate,
       difficulty: values.difficulty,
       priority: values.priority,

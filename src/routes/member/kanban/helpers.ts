@@ -28,7 +28,7 @@ export const DIFFICULTY_META: Record<
     chip: 'bg-sky-500/15 text-sky-300',
   },
   moderate: {
-    label: 'Moderate time',
+    label: 'Moderate',
     accent: 'border-l-amber-400',
     dot: 'bg-amber-400',
     chip: 'bg-amber-500/15 text-amber-300',
