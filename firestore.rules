@@ -50,8 +50,12 @@ service cloud.firestore {
     // ---- profiles ----------------------------------------------------------
     match /profiles/{uid} {
       // A user may read their own profile; the admin may read all profiles
-      // (needed for the approval queue).
-      allow read: if isAdmin() || (isSignedIn() && request.auth.uid == uid);
+      // (needed for the approval queue). Approved members may also read the
+      // profile list so member-facing features (e.g. the Kanban assignee
+      // picker) can offer a roster of teammates.
+      allow read: if isAdmin()
+        || isApproved()
+        || (isSignedIn() && request.auth.uid == uid);
 
       // A user may create ONLY their own profile, and only as a pending member
       // with an email matching their auth token. This prevents self-approval
@@ -87,6 +91,14 @@ service cloud.firestore {
     // write; unapproved and signed-out users are denied. Records have no
     // per-user ownership — the whole team maintains one inventory.
     match /equipment/{itemId} {
+      allow read, create, update, delete: if isApproved() || isAdmin();
+    }
+
+    // ---- Kanban ------------------------------------------------------------
+    // Shared team task board. Any approved member (or the admin) may read and
+    // write; unapproved and signed-out users are denied. Tasks have no
+    // per-user ownership — the whole team maintains one board.
+    match /Kanban/{taskId} {
       allow read, create, update, delete: if isApproved() || isAdmin();
     }
 
