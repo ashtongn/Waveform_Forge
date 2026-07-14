@@ -8,6 +8,44 @@ fixes bump the **patch** number.
 
 ---
 
+## v0.3.0 — Training Lab Catalog
+
+**Pushed:** 2026-07-14
+
+The public Training tab is no longer a single page. It is now a catalog of
+interactive, education-only trainings backed by a registry, so new trainings
+can be added by dropping in a module and one registry entry — no routing
+changes required. Ships with a second training alongside the existing jamming
+visualization.
+
+### Added
+- **Training catalog** (`/training`): the new landing page for the Training
+  tab. Lists every registered training as a card (icon, title, summary, tags,
+  difficulty), with support for non-clickable "coming soon" teaser cards.
+- **Training registry** (`registry.ts`): a single, typed source of truth
+  describing each training (slug, title, summary, tags, difficulty, status, and
+  a lazily-loaded component). Drives both the catalog and the detail router.
+- **Signal Bits Lab** (`/training/bits`): a new interactive training that walks
+  learners through how a receiver turns a raw digital frame into structured
+  information — hover a bit to preview its field, click to pin it, or play a
+  guided receive scan that steps through the frame field by field. Includes a
+  receive-flow panel and a field guide. Illustrative and non-operational: all
+  field names, order, lengths, and bit values are fictional examples.
+
+### Changed
+- **Training routing**: `/training` now nests an index (catalog) and a
+  `/training/:slug` detail route; unknown slugs redirect back to the catalog.
+  Each training is lazily loaded and code-split into its own chunk.
+- **Training structure**: each training is now a self-contained module under
+  `training/modules/<name>/`. The existing jamming visualization was moved into
+  `modules/jamming/` and wrapped by `JammingModule` with no behavior change.
+- **Shared training chrome** (`TrainingLayout`): detail pages share a breadcrumb,
+  a "back to catalog" link, and the standard public-safety note, so modules only
+  render their interactive content.
+- **Version**: `0.2.2` → `0.3.0`.
+
+---
+
 ## v0.2.2 — Home Page Signal
 
 **Pushed:** 2026-07-01
