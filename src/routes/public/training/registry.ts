@@ -32,8 +32,6 @@ export interface TrainingDefinition {
   difficulty: TrainingDifficulty;
   /** Availability — `coming_soon` renders a non-clickable teaser card. */
   status: TrainingStatus;
-  /** Decorative glyph shown on the catalog card. */
-  icon: string;
   /** Lazily-loaded training component (only for `available` trainings). */
   component?: LazyExoticComponent<ComponentType>;
 }
@@ -47,7 +45,6 @@ export const TRAININGS: TrainingDefinition[] = [
     tags: ['Spectrum', 'Jamming', 'Frequency Domain'],
     difficulty: 'Beginner',
     status: 'available',
-    icon: '📡',
     component: lazy(() => import('./modules/jamming/JammingModule')),
   },
   {
@@ -58,7 +55,6 @@ export const TRAININGS: TrainingDefinition[] = [
     tags: ['Protocol', 'Digital', 'Receiver'],
     difficulty: 'Beginner',
     status: 'available',
-    icon: '🔢',
     component: lazy(() => import('./modules/bits/BitsModule')),
   },
 ];
