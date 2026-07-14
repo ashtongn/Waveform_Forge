@@ -21,10 +21,7 @@ export default function TrainingCard({ training }: TrainingCardProps) {
           : 'opacity-60',
       ].join(' ')}
     >
-      <div className="flex items-start justify-between gap-3">
-        <span aria-hidden="true" className="text-2xl leading-none">
-          {training.icon}
-        </span>
+      <div className="flex items-start justify-end gap-3">
         <span className="border border-forge-border px-2 py-1 font-mono text-[0.62rem] uppercase tracking-[0.12em] text-forge-muted">
           {available ? training.difficulty : 'Coming soon'}
         </span>
