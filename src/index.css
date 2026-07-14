@@ -13,3 +13,25 @@
     @apply bg-forge-bg text-forge-text font-sans antialiased;
   }
 }
+
+@layer utilities {
+  /* Sweeping "receive scan" indicator for the Signal Bits Lab training. */
+  @keyframes bits-scan {
+    from {
+      left: 0.5rem;
+    }
+    to {
+      left: calc(100% - 0.75rem);
+    }
+  }
+
+  .bits-scan-line {
+    animation: bits-scan 5.6s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bits-scan-line {
+      animation: none;
+    }
+  }
+}

@@ -2,7 +2,8 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import Home from './routes/public/Home';
 import About from './routes/public/About';
-import Training from './routes/public/Training';
+import TrainingCatalog from './routes/public/training/TrainingCatalog';
+import TrainingDetail from './routes/public/training/TrainingDetail';
 import NotFound from './routes/public/NotFound';
 import Login from './routes/auth/Login';
 import SignUp from './routes/auth/SignUp';
@@ -31,9 +32,12 @@ export default function App() {
         <Route path="*" element={<Navigate to="/404" replace />} />
       </Route>
 
-      {/* Wide public shell: immersive, education-only training page */}
+      {/* Wide public shell: immersive, education-only training section */}
       <Route element={<Layout wide />}>
-        <Route path="training" element={<Training />} />
+        <Route path="training">
+          <Route index element={<TrainingCatalog />} />
+          <Route path=":slug" element={<TrainingDetail />} />
+        </Route>
       </Route>
 
       {/* Wide shell: signed-in app areas (member + admin) */}

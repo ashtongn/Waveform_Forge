@@ -1,29 +1,14 @@
-import JammingVisualization from './training/JammingVisualization';
+import JammingVisualization from './JammingVisualization';
 
 /**
- * Public, education-only training page. Available to everyone (no member
- * approval). It presents an abstract, frequency-domain visualization so new
- * learners can compare conceptual jamming categories. It does not transmit,
- * generate, or expose any operational signal parameters.
+ * "Jamming Visualization" training module. Presents an abstract,
+ * frequency-domain visualization so new learners can compare conceptual
+ * jamming categories. It does not transmit, generate, or expose any
+ * operational signal parameters.
  */
-export default function Training() {
+export default function JammingModule() {
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="space-y-2">
-          <p className="font-mono text-sm uppercase tracking-widest text-forge-signal">
-            Waveform Forge / Training Lab
-          </p>
-          <h1 className="text-3xl font-semibold uppercase tracking-tight sm:text-4xl">
-            Jamming Visualization
-          </h1>
-        </div>
-        <p className="max-w-xs border border-forge-border bg-white/[0.025] px-3 py-2.5 text-right font-mono text-[0.72rem] uppercase leading-relaxed tracking-[0.08em] text-forge-muted sm:text-right">
-          Visual-only training • no RF values • no signal generation
-        </p>
-      </header>
-
       {/* Hero / intent */}
       <section className="relative overflow-hidden border border-forge-border bg-forge-panel/80 p-5 shadow-2xl sm:p-8">
         <div className="grid gap-6 lg:grid-cols-[1.35fr_0.65fr] lg:items-end">
@@ -31,8 +16,11 @@ export default function Training() {
             <p className="font-mono text-xs uppercase tracking-widest text-forge-signal">
               Educational spectrum behavior reference
             </p>
+            <h2 className="mt-3 text-2xl font-semibold uppercase tracking-tight sm:text-3xl">
+              Jamming Visualization
+            </h2>
             <p className="mt-4 max-w-2xl leading-relaxed text-forge-muted">
-              This page demonstrates how different jamming categories can be
+              This training demonstrates how different jamming categories can be
               represented from an abstract frequency-domain perspective. It is
               intentionally conceptual: the axis is unlabeled, the amplitudes are
               fictional, and the animation does not transmit, propagate,
@@ -88,7 +76,7 @@ export default function Training() {
 
       {/* Educational modules */}
       <section
-        aria-label="How to use this page"
+        aria-label="How to use this training"
         className="grid grid-cols-1 gap-3 sm:grid-cols-3"
       >
         {[
@@ -124,14 +112,6 @@ export default function Training() {
           </article>
         ))}
       </section>
-
-      {/* Public-safety note */}
-      <p className="font-mono text-[0.69rem] uppercase leading-relaxed tracking-[0.1em] text-forge-muted/70">
-        This page is intentionally abstract and non-operational. It does not
-        contain controlled information, tactical data, RF values, transmit logic,
-        or instructions for affecting communications systems. It exists only to
-        help new learners visualize conceptual patterns.
-      </p>
     </div>
   );
 }
