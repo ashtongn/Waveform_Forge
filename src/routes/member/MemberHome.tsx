@@ -45,6 +45,17 @@ export default function MemberHome() {
             done.
           </p>
         </Link>
+        <Link
+          to="/app/calculator"
+          className="rounded-lg border border-forge-border bg-forge-panel/50 p-5 transition hover:border-forge-accent"
+        >
+          <h2 className="text-lg font-semibold text-forge-text">
+            Base calculator
+          </h2>
+          <p className="mt-1 text-sm text-forge-muted">
+            Convert between binary, decimal, and hex instantly for RF work.
+          </p>
+        </Link>
       </div>
     </section>
   );
