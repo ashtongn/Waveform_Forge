@@ -12,6 +12,7 @@ import RequireAdmin from './routes/RequireAdmin';
 import MemberHome from './routes/member/MemberHome';
 import EquipmentTracker from './routes/member/equipment/EquipmentTracker';
 import KanbanBoard from './routes/member/kanban/KanbanBoard';
+import Calculator from './routes/member/calculator/Calculator';
 import AdminHome from './routes/admin/AdminHome';
 
 export default function App() {
@@ -47,6 +48,7 @@ export default function App() {
           <Route path="app" element={<MemberHome />} />
           <Route path="app/equipment" element={<EquipmentTracker />} />
           <Route path="app/kanban" element={<KanbanBoard />} />
+          <Route path="app/calculator" element={<Calculator />} />
         </Route>
 
         {/* Admin only */}
