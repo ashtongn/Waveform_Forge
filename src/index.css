@@ -30,13 +30,12 @@
     background-size: 48px 48px;
   }
 
-  /* Cheap virtualization: the browser skips layout and paint for off-screen
-     sections while keeping the text in the DOM, so anchoring, search and
-     find-in-page all continue to work on very long documents. */
-  .wf-doc > * {
-    content-visibility: auto;
-    contain-intrinsic-size: auto 320px;
-  }
+  /* NOTE: `content-visibility: auto` was deliberately removed here.
+     Chromium expands a drag-selection to the whole element when any part of the
+     subtree is in the skipped (non-rendered) state, which made it impossible to
+     highlight a short phrase. Correct selection is a hard requirement for the
+     anchored-comment workflow, so the document renders eagerly instead; the
+     memoized render plus the lazily-loaded route chunk keep this cheap. */
 
   .wf-doc h1,
   .wf-doc h2,

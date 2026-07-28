@@ -43,12 +43,42 @@ can highlight any passage and open a Google-Docs-style review thread against it.
   to *Interactive Trainings* and *Training Plan*. The tab stays highlighted
   anywhere in the section, and the new reusable `NavDropdown` component keeps the
   header from growing as more training destinations are added.
+- **Firestore rules recognise `role == 'admin'`.** Admin authority previously
+  came only from the hard-coded bootstrap UID, while the application UI has
+  always checked the profile's `role` field. The rules now accept either, so the
+  two agree. Users still cannot promote themselves: profile creation forces
+  `role: 'member'`, and the only self-update permitted is a denied → pending
+  re-request that touches `status` alone.
+
+### Fixed
+- **Could not highlight a short passage.** `content-visibility: auto` on the
+  document sections made Chromium expand a drag-selection to the entire element
+  whenever any part of the subtree was in the skipped state. Removed; correct
+  selection is a hard requirement for anchored comments.
+- **Selection shading bled through the "Add comment" button.** The floating
+  toolbar now renders through a portal on `document.body` in its own top-level
+  stacking context, positions against the selection's first/last line box rather
+  than its full bounding box, and flips below the selection when there is no
+  headroom above.
+- **Profile lookups could fail the whole rule expression.** `isApproved()`
+  dereferenced a `get()` that returns null for a signed-in user with no profile
+  document yet; guarded with `exists()`.
+- **Creating a thread took two writes.** The root comment's id is now generated
+  client-side and stored in a single `setDoc`, instead of an `addDoc` followed by
+  a patch to record its own `threadId`.
+- **Storage failures were unreadable or silent.** Firestore errors are mapped to
+  actionable messages, and resolve/reopen/delete no longer discard their rejected
+  promise.
 
 ### Notes
 - Permission checks are centralized in `comments/permissions.ts`; unapproved and
   signed-out visitors get a clean read-only manual with no comment controls.
 - Storage sits behind the `CommentRepository` interface — the Firestore
   implementation is injected in one place (`DocumentRoute.tsx`).
+- **The rules in this repo are not live until published.** Deploy them from the
+  Firebase Console: Firestore Database → Rules → paste `firestore.rules` →
+  Publish. Skipping this step makes every `docComments` request fall through to
+  the catch-all deny, which surfaces as "Missing or insufficient permissions".
 
 ---
 

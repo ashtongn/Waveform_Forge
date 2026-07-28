@@ -69,3 +69,28 @@ export function formatTimestamp(value: number | null): string {
     year: 'numeric',
   });
 }
+
+/**
+ * Turns a storage error into something a reader can act on.
+ *
+ * Raw Firebase strings such as "Missing or insufficient permissions" tell a
+ * member nothing about what to do, and are alarming on a public page. The most
+ * common cause by far is that the `docComments` security rules have not been
+ * deployed yet, so that case is called out explicitly for maintainers.
+ */
+export function describeCommentError(error: unknown): string {
+  const code =
+    typeof error === 'object' && error !== null && 'code' in error
+      ? String((error as { code: unknown }).code)
+      : '';
+
+  if (code.includes('permission-denied') || code.includes('unauthenticated')) {
+    return 'Comments are unavailable for this account. If you are an approved member, the docComments security rules may not be deployed yet (firebase deploy --only firestore:rules).';
+  }
+
+  if (code.includes('unavailable') || code.includes('network')) {
+    return 'Comments are offline. They will reappear once the connection is restored.';
+  }
+
+  return error instanceof Error ? error.message : 'Comments could not be loaded.';
+}

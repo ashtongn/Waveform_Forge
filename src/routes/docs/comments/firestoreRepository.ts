@@ -6,6 +6,7 @@ import {
   onSnapshot,
   query,
   serverTimestamp,
+  setDoc,
   Timestamp,
   updateDoc,
   where,
@@ -50,8 +51,14 @@ export const firestoreCommentRepository: CommentRepository = {
   },
 
   async createThread(input: CreateThreadInput) {
-    const ref = await addDoc(collection(db, COLLECTION), {
+    // The id is generated client-side so the root comment can store its own
+    // `threadId` in the same write. Creating and then patching would need a
+    // second, separately-authorized update for no benefit.
+    const ref = doc(collection(db, COLLECTION));
+
+    await setDoc(ref, {
       documentId: input.documentId,
+      threadId: ref.id,
       parentId: null,
       anchor: { ...input.anchor },
       body: input.body,
@@ -63,9 +70,6 @@ export const firestoreCommentRepository: CommentRepository = {
       updatedAt: serverTimestamp(),
     });
 
-    // A root comment is its own thread. Written after creation because the id
-    // is only known once Firestore has assigned it.
-    await updateDoc(ref, { threadId: ref.id });
     return ref.id;
   },
 
