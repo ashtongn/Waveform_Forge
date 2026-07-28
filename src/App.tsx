@@ -1,9 +1,15 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
 import Layout from './components/layout/Layout';
+import LoadingScreen from './components/LoadingScreen';
 import Home from './routes/public/Home';
 import About from './routes/public/About';
 import TrainingCatalog from './routes/public/training/TrainingCatalog';
 import TrainingDetail from './routes/public/training/TrainingDetail';
+
+// Lazily loaded: pulls in the Markdown rendering pipeline, which should not
+// weigh on the initial bundle for visitors who never open a document.
+const DocumentRoute = lazy(() => import('./routes/docs/DocumentRoute'));
 import NotFound from './routes/public/NotFound';
 import Login from './routes/auth/Login';
 import SignUp from './routes/auth/SignUp';
@@ -39,6 +45,22 @@ export default function App() {
           <Route index element={<TrainingCatalog />} />
           <Route path=":slug" element={<TrainingDetail />} />
         </Route>
+      </Route>
+
+      {/*
+        Wide public shell: living Markdown documents.
+        Readable by everyone; commenting is gated inside the page by the
+        document permission service rather than by a route guard.
+      */}
+      <Route element={<Layout wide />}>
+        <Route
+          path="docs/:docSlug"
+          element={
+            <Suspense fallback={<LoadingScreen />}>
+              <DocumentRoute />
+            </Suspense>
+          }
+        />
       </Route>
 
       {/* Wide shell: signed-in app areas (member + admin) */}

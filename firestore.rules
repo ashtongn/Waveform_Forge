@@ -102,6 +102,32 @@ service cloud.firestore {
       allow read, create, update, delete: if isApproved() || isAdmin();
     }
 
+    // ---- docComments -------------------------------------------------------
+    // Anchored review comments on the living Markdown documents (/docs/:slug).
+    // The documents themselves are public engineering references, so their
+    // review threads are readable by anyone — including signed-out visitors —
+    // while authoring is restricted to approved members acting as themselves.
+    match /docComments/{commentId} {
+      allow read: if true;
+
+      allow create: if (isApproved() || isAdmin())
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.documentId is string
+        && request.resource.data.body is string
+        && request.resource.data.body.size() > 0
+        && request.resource.data.body.size() <= 5000;
+
+      // Edit / resolve / reopen: the comment's author, or the admin.
+      // Authorship can never be reassigned.
+      allow update: if isAdmin()
+        || (isSignedIn()
+            && resource.data.authorUid == request.auth.uid
+            && request.resource.data.authorUid == resource.data.authorUid);
+
+      allow delete: if isAdmin()
+        || (isSignedIn() && resource.data.authorUid == request.auth.uid);
+    }
+
     // ---- Deny everything else ----------------------------------------------
     // Member collections (equipment, boards, lessons, ...) will be added here
     // guarded by isApproved()/isAdmin() as those features are built.

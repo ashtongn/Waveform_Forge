@@ -1,4 +1,5 @@
 import TrainingCard from './TrainingCard';
+import LivingDocumentSection from '../../docs/components/LivingDocumentSection';
 import { getAllTrainings } from './registry';
 
 /**
@@ -37,6 +38,8 @@ export default function TrainingCatalog() {
           <TrainingCard key={training.slug} training={training} />
         ))}
       </section>
+
+      <LivingDocumentSection />
     </div>
   );
 }

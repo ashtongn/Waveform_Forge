@@ -1,6 +1,24 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../auth/useAuth';
 import { logOut } from '../../auth/actions';
+import NavDropdown from './NavDropdown';
+
+/**
+ * Destinations grouped under the single "Training" tab, so the top bar stays
+ * uncluttered as the Training Lab grows.
+ */
+const TRAINING_LINKS = [
+  {
+    to: '/training',
+    label: 'Interactive Trainings',
+    description: 'Education-only visual training modules.',
+  },
+  {
+    to: '/docs/training-plan',
+    label: 'Training Plan',
+    description: 'Flight qualification path and curriculum.',
+  },
+];
 
 const navLinkClass = ({ isActive }: { isActive: boolean }) =>
   [
@@ -34,9 +52,7 @@ export default function Header({ containerClass = 'max-w-5xl' }: HeaderProps) {
           <NavLink to="/about" className={navLinkClass}>
             About
           </NavLink>
-          <NavLink to="/training" className={navLinkClass}>
-            Training
-          </NavLink>
+          <NavDropdown label="Training" items={TRAINING_LINKS} />
 
           {isApproved && (
             <NavLink to="/app" end className={navLinkClass}>
