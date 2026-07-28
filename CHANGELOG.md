@@ -8,6 +8,54 @@ fixes bump the **patch** number.
 
 ---
 
+## v0.5.0 — Collaborative Document Editing
+
+**Pushed:** 2026-07-28
+
+Approved members can now revise the training plan from the site, not just
+comment on it. The document is split at its top-level headings and each section
+is edited on its own, so two people can work on different chapters at the same
+time and a save rewrites one small record instead of several hundred pages.
+
+### Added
+- **Section editing.** Hovering a section reveals an Edit control for approved
+  members; it swaps that section for a Markdown source editor with a live
+  preview toggle. Saves publish instantly to every reader through the existing
+  live subscription. Drafts are mirrored to `localStorage`, so a dropped
+  connection does not lose work.
+- **`DocumentSourceRepository`** — the document body now sits behind the same
+  kind of storage seam as comments, with a Firestore implementation storing one
+  record per section under `docSources/{documentId}/sections/{sectionId}`.
+- **Repository fallback.** Until a document is imported — or if the reader is
+  offline, or the rules deny the read — the page renders the copy bundled from
+  `/docs` as a read-only manual. A one-click **Enable editing** action performs
+  the one-time import.
+- **Export .md** in the version banner: downloads the current Markdown with its
+  front matter re-attached, so a maintainer can commit it back to `/docs`.
+- **Collaboration status bar.** The page now states plainly whether the reader
+  is in review mode or read-only, and why. Previously an approved member and a
+  signed-out visitor saw an identical page, with no way to tell why commenting
+  "did not work".
+- **`editDocument` / `importDocument`** permissions, routed through the existing
+  `PermissionService`; `docSources` rules allow public read and approved-member
+  writes, matching the shared Kanban and equipment collections.
+
+### Changed
+- Provenance in the version banner is derived from the live sections once a
+  document is imported, and from front matter otherwise, so it always describes
+  the copy actually on screen.
+- `MarkdownRenderer` now renders a single section; the `.wf-doc` typography
+  wrapper moved to `DocumentBody` so the grid and heading rhythm stay continuous.
+
+### Notes
+- Conflict handling is intentionally minimal: sections are independent, so
+  collisions require two members editing the *same* section, where the last save
+  wins. Locking and revision history were considered and deferred.
+- Comment anchors survive edits through the existing quote + context resolver;
+  anything that cannot be relocated is preserved and flagged "Detached".
+
+---
+
 ## v0.4.0 — Living Documents & Anchored Comments
 
 **Pushed:** 2026-07-28

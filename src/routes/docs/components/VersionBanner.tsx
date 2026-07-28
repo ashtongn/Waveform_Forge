@@ -1,29 +1,45 @@
+import { formatTimestamp } from '../comments/helpers';
 import type { DocumentMetadata } from '../markdown/loader';
 
 interface VersionBannerProps {
   metadata: DocumentMetadata;
   sourcePath: string;
+  /** True when the body is served from the editable store, not the repo copy. */
+  live: boolean;
+  lastUpdatedAt: number | null;
+  lastEditor: string | null;
   openThreadCount: number;
   resolvedThreadCount: number;
+  onExport(): void;
 }
 
 /**
  * VersionBanner — the "official document" header.
  *
- * Values come from the Markdown file's YAML front matter, keeping the file the
- * single source of truth for its own provenance. Missing fields are simply
- * omitted rather than rendered as placeholders.
+ * Provenance is taken from the live store when the document has been imported,
+ * and from the Markdown file's YAML front matter otherwise, so the banner always
+ * describes the copy actually on screen. Missing fields are omitted rather than
+ * rendered as placeholders.
  */
 export default function VersionBanner({
   metadata,
   sourcePath,
+  live,
+  lastUpdatedAt,
+  lastEditor,
   openThreadCount,
   resolvedThreadCount,
+  onExport,
 }: VersionBannerProps) {
   const facts: Array<[string, string]> = [];
   if (metadata.version) facts.push(['Version', metadata.version]);
-  if (metadata.lastUpdated) facts.push(['Last updated', metadata.lastUpdated]);
-  if (metadata.lastEditor) facts.push(['Last editor', metadata.lastEditor]);
+
+  const updated = live && lastUpdatedAt ? formatTimestamp(lastUpdatedAt) : metadata.lastUpdated;
+  if (updated) facts.push(['Last updated', updated]);
+
+  const editor = (live ? lastEditor : null) ?? metadata.lastEditor;
+  if (editor) facts.push(['Last editor', editor]);
+
   facts.push(['Open comments', String(openThreadCount)]);
   facts.push(['Resolved', String(resolvedThreadCount)]);
 
@@ -58,14 +74,26 @@ export default function VersionBanner({
 
       <div className="flex flex-wrap items-center justify-between gap-2 px-5 py-3">
         <p className="font-mono text-[0.62rem] uppercase tracking-[0.12em] text-forge-muted/80">
-          Source of truth&nbsp;
+          {live ? 'Live document · seeded from' : 'Source of truth'}&nbsp;
           <span className="text-forge-accent">{sourcePath}</span>
         </p>
-        {metadata.classification && (
-          <p className="border border-forge-border px-2 py-1 font-mono text-[0.62rem] uppercase tracking-[0.12em] text-forge-muted">
-            {metadata.classification}
-          </p>
-        )}
+
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onExport}
+            title="Download the current Markdown so it can be committed back to the repository"
+            className="border border-forge-border px-2 py-1 font-mono text-[0.62rem] uppercase tracking-[0.12em] text-forge-muted transition-colors hover:border-forge-accent/60 hover:text-forge-accent"
+          >
+            Export .md
+          </button>
+
+          {metadata.classification && (
+            <p className="border border-forge-border px-2 py-1 font-mono text-[0.62rem] uppercase tracking-[0.12em] text-forge-muted">
+              {metadata.classification}
+            </p>
+          )}
+        </div>
       </div>
     </header>
   );

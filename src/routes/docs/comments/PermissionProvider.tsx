@@ -13,11 +13,11 @@ import {
  * authorization; every consumer downstream depends on `usePermissions()`.
  */
 export default function PermissionProvider({ children }: { children: ReactNode }) {
-  const { user, profile } = useAuth();
+  const { user, profile, loading } = useAuth();
 
   const service = useMemo(
-    () => createPermissionService(createActor(user, profile)),
-    [user, profile],
+    () => createPermissionService(createActor(user, profile), !loading),
+    [user, profile, loading],
   );
 
   return (

@@ -13,14 +13,17 @@ import type { User } from 'firebase/auth';
  * Client-side checks are a UX affordance only — Firestore rules remain the
  * real enforcement boundary.
  */
-export type CommentAction =
+export type DocumentAction =
   | 'highlight'
   | 'createThread'
   | 'reply'
   | 'edit'
   | 'delete'
   | 'resolve'
-  | 'reopen';
+  | 'reopen'
+  // Document body, not comments.
+  | 'editDocument'
+  | 'importDocument';
 
 export interface PermissionTarget {
   /** Uid of the user who authored the thing being acted upon. */
@@ -37,8 +40,15 @@ export interface Actor {
 
 export interface PermissionService {
   actor: Actor;
+  /**
+   * False while the auth state is still resolving. Consumers use this to avoid
+   * briefly telling a signed-in member that they are a read-only visitor.
+   */
+  ready: boolean;
+  /** Why the actor cannot collaborate, for explaining the read-only state. */
+  readOnlyReason: 'none' | 'signed-out' | 'awaiting-approval';
   /** True when the actor may perform `action` against `target`. */
-  can(action: CommentAction, target?: PermissionTarget): boolean;
+  can(action: DocumentAction, target?: PermissionTarget): boolean;
 }
 
 /** Read-only visitor: may read everything, may write nothing. */
@@ -59,13 +69,22 @@ export function createActor(user: User | null, profile: Profile | null): Actor {
   };
 }
 
-export function createPermissionService(actor: Actor): PermissionService {
+export function createPermissionService(
+  actor: Actor,
+  ready: boolean,
+): PermissionService {
   const isCollaborator = actor.approved || actor.admin;
   const owns = (target?: PermissionTarget) =>
     Boolean(actor.uid) && target?.authorUid === actor.uid;
 
   return {
     actor,
+    ready,
+    readOnlyReason: isCollaborator
+      ? 'none'
+      : actor.uid
+        ? 'awaiting-approval'
+        : 'signed-out',
     can(action, target) {
       if (!isCollaborator) return false;
 
@@ -74,6 +93,13 @@ export function createPermissionService(actor: Actor): PermissionService {
         case 'highlight':
         case 'createThread':
         case 'reply':
+          return true;
+
+        // The document is collaboratively maintained: any approved member may
+        // revise it, and any approved member may perform the one-time import
+        // that moves it from the repository copy into the live store.
+        case 'editDocument':
+        case 'importDocument':
           return true;
 
         // Mutating existing content is owner-or-admin.

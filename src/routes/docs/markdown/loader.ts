@@ -35,6 +35,8 @@ export interface LoadedDocument {
   metadata: DocumentMetadata;
   /** Markdown body with front matter stripped. */
   content: string;
+  /** Front matter verbatim, re-attached when the document is exported. */
+  frontMatter: string;
 }
 
 export function listAvailableMarkdownPaths(): string[] {
@@ -51,10 +53,11 @@ export async function loadMarkdownDocument(
   }
 
   const raw = await loader();
-  const { data, content } = parseFrontMatter(raw);
+  const { data, content, raw: frontMatter } = parseFrontMatter(raw);
 
   return {
     content,
+    frontMatter,
     metadata: {
       title: data.title ?? extractFirstHeading(content) ?? fallbackTitle,
       version: data.version ?? null,

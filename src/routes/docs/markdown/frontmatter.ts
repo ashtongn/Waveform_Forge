@@ -14,9 +14,11 @@ const FRONT_MATTER_PATTERN = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
 export function parseFrontMatter(source: string): {
   data: FrontMatter;
   content: string;
+  /** The original block, verbatim, so an export can round-trip it. */
+  raw: string;
 } {
   const match = FRONT_MATTER_PATTERN.exec(source);
-  if (!match) return { data: {}, content: source };
+  if (!match) return { data: {}, content: source, raw: '' };
 
   const data: FrontMatter = {};
   for (const line of match[1].split(/\r?\n/)) {
@@ -33,5 +35,5 @@ export function parseFrontMatter(source: string): {
     data[key] = rawValue.replace(/^["']|["']$/g, '');
   }
 
-  return { data, content: source.slice(match[0].length) };
+  return { data, content: source.slice(match[0].length), raw: match[0] };
 }

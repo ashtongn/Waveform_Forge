@@ -8,10 +8,11 @@ import {
 } from 'react';
 import { Link } from 'react-router-dom';
 import LoadingScreen from '../../components/LoadingScreen';
-import MarkdownRenderer from './components/MarkdownRenderer';
+import DocumentBody from './components/DocumentBody';
 import DocumentSearch from './components/DocumentSearch';
 import DocumentTOC from './components/DocumentTOC';
 import CommentSidebar, { type PendingSelection } from './components/CommentSidebar';
+import CollaborationStatus from './components/CollaborationStatus';
 import SelectionToolbar from './components/SelectionToolbar';
 import VersionBanner from './components/VersionBanner';
 import { createAnchor, resolveAnchor } from './anchoring/anchor';
@@ -23,27 +24,37 @@ import { usePermissions } from './comments/permissions';
 import { useDocumentOutline } from './hooks/useDocumentOutline';
 import { useDocumentSearch } from './hooks/useDocumentSearch';
 import { loadMarkdownDocument, type LoadedDocument } from './markdown/loader';
+import { joinSections } from './source/sections';
+import { useDocumentSource } from './source/useDocumentSource';
+import type { DocumentSourceRepository } from './source/types';
 import type { LivingDocumentDefinition } from './registry';
 
 interface LivingDocumentPageProps {
   definition: LivingDocumentDefinition;
+  /** Injected storage for the document body — see `DocumentSourceRepository`. */
+  sourceRepository: DocumentSourceRepository;
 }
 
 /**
- * LivingDocumentPage — orchestrator for the reading + review experience.
+ * LivingDocumentPage — orchestrator for the reading, review and editing
+ * experience.
  *
  * It is the only component that knows how the pieces fit together:
  *
- *   Markdown source ──▶ MarkdownRenderer (memoized DOM)
+ *   DocumentSource ──▶ DocumentBody (memoized sections)
  *                          │
  *                          ├─▶ text index ──▶ AnchorResolver ──▶ HighlightOverlay
  *                          ├─▶ outline ─────▶ DocumentTOC
  *                          └─▶ flat text ───▶ DocumentSearch
  *
- * Comment data and authorization arrive through context, so this file contains
- * no storage or policy logic of its own.
+ * Content, comment data and authorization all arrive through injected
+ * repositories or context, so this file contains no storage or policy logic of
+ * its own.
  */
-export default function LivingDocumentPage({ definition }: LivingDocumentPageProps) {
+export default function LivingDocumentPage({
+  definition,
+  sourceRepository,
+}: LivingDocumentPageProps) {
   const permissions = usePermissions();
   const { threads, loading: commentsLoading, error, createThread } = useComments();
 
@@ -55,6 +66,8 @@ export default function LivingDocumentPage({ definition }: LivingDocumentPagePro
   const [documentText, setDocumentText] = useState('');
 
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
+  const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [pendingSelection, setPendingSelection] = useState<PendingSelection | null>(null);
   const [mobilePanel, setMobilePanel] = useState<'none' | 'toc' | 'comments'>('none');
 
@@ -81,19 +94,27 @@ export default function LivingDocumentPage({ definition }: LivingDocumentPagePro
     };
   }, [definition.path, definition.title]);
 
+  const source = useDocumentSource(
+    definition.commentNamespace,
+    sourceRepository,
+    document_?.content ?? null,
+  );
+
   // ---- Index the rendered text once per content change ---------------------
+  // `revision` changes whenever a section is added or edited, which is exactly
+  // when the flat text — and therefore every anchor offset — must be rebuilt.
   useLayoutEffect(() => {
     const container = containerRef.current;
-    if (!container || !document_) return;
+    if (!container || source.sections.length === 0) return;
 
     clearHighlights(container);
     const index = buildTextIndex(container);
     textIndexRef.current = index;
     setDocumentText(index.text);
-  }, [document_]);
+  }, [source.revision, source.sections.length, editingSectionId]);
 
   const search = useDocumentSearch(documentText, threads);
-  const outline = useDocumentOutline(containerRef, document_?.content ?? '');
+  const outline = useDocumentOutline(containerRef, source.revision);
 
   // ---- Resolve every anchor against the current text -----------------------
   const resolutions = useMemo(() => {
@@ -215,6 +236,50 @@ export default function LivingDocumentPage({ definition }: LivingDocumentPagePro
     setMobilePanel('none');
   }, []);
 
+  // ---- Document editing ----------------------------------------------------
+  const requireAuthor = useCallback(() => {
+    const { uid, name } = permissions.actor;
+    if (!uid) throw new Error('You must be signed in to edit this document.');
+    return { uid, name };
+  }, [permissions]);
+
+  const saveSection = useCallback(
+    async (sectionId: string, content: string) => {
+      await source.saveSection(sectionId, content, requireAuthor());
+      setEditingSectionId(null);
+    },
+    [source, requireAuthor],
+  );
+
+  const stopEditing = useCallback(() => setEditingSectionId(null), []);
+
+  const importFromRepository = useCallback(() => {
+    setActionError(null);
+    source.importFromRepository(requireAuthor()).catch((err: unknown) => {
+      setActionError(
+        err instanceof Error ? err.message : 'Could not import the document.',
+      );
+    });
+  }, [source, requireAuthor]);
+
+  const exportMarkdown = useCallback(() => {
+    if (!document_) return;
+
+    const body = joinSections(source.sections.map((section) => section.content));
+    const blob = new Blob([`${document_.frontMatter}${body}\n`], {
+      type: 'text/markdown;charset=utf-8',
+    });
+    const url = URL.createObjectURL(blob);
+
+    const link = window.document.createElement('a');
+    link.href = url;
+    link.download = definition.path.split('/').pop() ?? 'document.md';
+    link.click();
+    URL.revokeObjectURL(url);
+  }, [document_, source.sections, definition.path]);
+
+  const canEditDocument = permissions.can('editDocument') && source.live;
+
   const openCount = threads.filter((thread) => thread.status === 'open').length;
   const resolvedCount = threads.length - openCount;
 
@@ -276,9 +341,40 @@ export default function LivingDocumentPage({ definition }: LivingDocumentPagePro
       <VersionBanner
         metadata={document_.metadata}
         sourcePath={definition.path}
+        live={source.live}
+        lastUpdatedAt={source.lastUpdatedAt}
+        lastEditor={source.lastEditor}
         openThreadCount={openCount}
         resolvedThreadCount={resolvedCount}
+        onExport={exportMarkdown}
       />
+
+      <CollaborationStatus />
+
+      {/* One-time promotion of the repository copy into the editable store. */}
+      {!source.live && !source.loading && permissions.can('importDocument') && (
+        <div className="flex flex-wrap items-center gap-3 border border-forge-accent/40 bg-forge-accent/5 px-4 py-3">
+          <p className="flex-1 text-sm leading-relaxed text-forge-muted">
+            This document is being served from the repository copy and cannot be
+            edited yet. Importing it once makes each section editable by any
+            approved member.
+          </p>
+          <button
+            type="button"
+            onClick={importFromRepository}
+            className="border border-forge-accent/60 px-3 py-2 font-mono text-[0.65rem] uppercase tracking-[0.12em] text-forge-accent transition-colors hover:bg-forge-accent/10"
+          >
+            Enable editing
+          </button>
+        </div>
+      )}
+
+      {/* Storage problems are only actionable for members who can edit. */}
+      {(actionError || (source.error && permissions.can('editDocument'))) && (
+        <p className="border border-red-500/40 bg-red-500/5 px-4 py-2.5 text-sm text-red-300">
+          {actionError ?? source.error}
+        </p>
+      )}
 
       {/* Compact controls for tablet / mobile, where the rails are hidden. */}
       <div className="flex gap-2 xl:hidden">
@@ -310,7 +406,14 @@ export default function LivingDocumentPage({ definition }: LivingDocumentPagePro
           onClick={handleDocumentClick}
           className="min-w-0 border border-forge-border bg-forge-panel/40 px-5 py-6 sm:px-8 sm:py-8"
         >
-          <MarkdownRenderer content={document_.content} />
+          <DocumentBody
+            sections={source.sections}
+            canEdit={canEditDocument}
+            editingSectionId={editingSectionId}
+            onStartEditing={setEditingSectionId}
+            onCancelEditing={stopEditing}
+            onSaveSection={saveSection}
+          />
         </div>
 
         <div className="hidden xl:block">
