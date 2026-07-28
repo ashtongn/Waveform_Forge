@@ -3,6 +3,7 @@ import LivingDocumentPage from './LivingDocumentPage';
 import CommentProvider from './comments/CommentProvider';
 import PermissionProvider from './comments/PermissionProvider';
 import { firestoreCommentRepository } from './comments/firestoreRepository';
+import { firestoreDocumentSourceRepository } from './source/firestoreSourceRepository';
 import { getLivingDocumentBySlug } from './registry';
 
 /**
@@ -12,8 +13,8 @@ import { getLivingDocumentBySlug } from './registry';
  * because the comment layer authorizes every write through the permission
  * service before it reaches the repository.
  *
- * The repository is injected here — the single place that needs to change to
- * move comments off Firestore.
+ * Both repositories are injected here — the single place that needs to change
+ * to move comments or document content off Firestore.
  */
 export default function DocumentRoute() {
   const { docSlug } = useParams();
@@ -28,7 +29,10 @@ export default function DocumentRoute() {
         documentId={definition.commentNamespace}
         repository={firestoreCommentRepository}
       >
-        <LivingDocumentPage definition={definition} />
+        <LivingDocumentPage
+          definition={definition}
+          sourceRepository={firestoreDocumentSourceRepository}
+        />
       </CommentProvider>
     </PermissionProvider>
   );
