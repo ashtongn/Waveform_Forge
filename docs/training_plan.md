@@ -13,7 +13,7 @@ This plan explains the training requirements, qualification path, and completion
 
 This plan is intentionally maintained as a living Markdown document rather than a Microsoft Word or standard United States Air Force (USAF)-formatted document so the Flight can update, review, share, and convert it more easily as training needs, tools, and mission requirements change.
 
-## 1. Introduction and Mission Alignment
+## Introduction and Mission Alignment
 
 1.1. The Waveform Development Flight develops, tests, documents, and transitions Electronic Attack (EA) techniques in support of the 453d Electronic Warfare Squadron (EWS), reprogramming centers, and mission partners. This training plan establishes a repeatable qualification process for Flight Members who support that mission.
 
@@ -25,7 +25,7 @@ This plan is intentionally maintained as a living Markdown document rather than 
 
 1.5. The standard training path is designed as a six-month immersion, with flexibility for mission demands, leave, temporary duty, prior experience, and approved tailoring. Follow-on sustainment and independent-contributor development continue after initial qualification.
 
-## 2. Security Clearances and Access
+## Security Clearances and Access
 
 2.1. Waveform Development Flight members require a minimum Top Secret/Sensitive Compartmented Information (TS/SCI) clearance. Special Access Program read-ins may be required based on mission need.
 
@@ -33,7 +33,7 @@ This plan is intentionally maintained as a living Markdown document rather than 
 
 2.3. Training events will use approved, controlled, and non-sensitive examples whenever possible. Controlled unclassified information (CUI), mission data, partner data, threat-system details, and classified results will be introduced only after required access, handling procedures, and supervision are in place.
 
-## 3. Audience, Training Roles, and Specialty Tracks
+## Audience, Training Roles, and Specialty Tracks
 
 3.1. This plan uses the following training roles.
 
@@ -78,7 +78,7 @@ This plan is intentionally maintained as a living Markdown document rather than 
 | Software Developer | Core Training Requirements and Software Developer Training Requirements | Section 7.2 and Section 7.4 | Core Training Requirements and Software Developer Training Requirements | Core Training Topics and Software Developer Topics | Section 7.4.17 |
 | Intelligence Specialist | Core Training Requirements and Intelligence Specialist Training Requirements | Section 7.2 and Section 7.5 | Core Training Requirements and Intelligence Specialist Training Requirements | Core Training Topics and Intelligence Specialist Topics | Section 7.5.11 |
 
-## 4. Training Phases, Assessment, and Cadence
+## Training Phases, Assessment, and Cadence
 
 4.1. Phase Progression Overview: this section describes the six-month progression used to introduce, practice, assess, and sustain the qualification topics. All students begin with orientation to the Flight and mission, complete shared foundations in communications, RF engineering, DSP, and basic EA concepts, move into the specialty track that matches their billet or assigned duties, complete evaluator-defined project work or assigned project support, and then continue into transition, sustainment, and support from qualified Flight Members.
 
@@ -97,7 +97,7 @@ The phases are ordered by training intent, but they may overlap when Section 6 t
 | Phase 4 - Evaluator-Defined Project and Hands-On Technique Development | Months 4 through 6 | Applicable evaluator-defined project topic in Section 7.3.21, Section 7.4.17, or Section 7.5.11; scenario established through evaluator-student discussion; applied work supporting a reviewed test plan, support product, transition package, or evidence product | Evaluator review of project work and evidence; separate written scenario document is not required | Student contributes to a reviewed development and test package, support product, or evidence product; completion is documented in Appendix B, and scope and evidence are retained in the training folder |
 | Phase 5 - Transition, Sustainment, and Qualified Flight Member Support | Months 7 through 12 | Independent task leadership, sustainment practice, partner support, technical exchange, and required refreshers | Sustainment assessment requiring the student to lead a bounded technical task, manage risks and evidence, brief results, instruct others when appropriate, and produce controlled documentation with limited correction | Student can support a post-delivery issue using approved evidence, documentation, and escalation paths |
 
-## 5. Training Records, Completion, and Plan Maintenance
+## Training Records, Completion, and Plan Maintenance
 
 5.1. Training Role Workflow: Section 3 defines the training roles and responsibility matrix. In practice, students complete assigned training, instructors support and document Section 6 training, evaluators assess and document Section 7 topic understanding, the Training Plan Manager assigns instructors and evaluators and maintains student training plans, and the Operations Lead approves qualification completion, waivers, and training plan updates.
 
@@ -139,13 +139,13 @@ The phases are ordered by training intent, but they may overlap when Section 6 t
 
 5.8.4. The Operations Lead is the approval authority for the training plan. The Training Plan Manager should keep the plan executable by preserving current templates, recording approved substitutions, incorporating approved updates, and retiring outdated course references when better training sources are approved.
 
-## 6. Training Curriculum Catalog
+## Training Curriculum Catalog
 
-### 6.1. Training Curriculum Catalog Overview
+### Training Curriculum Catalog Overview
 
 This section identifies the training requirements that support the core, engineering, software developer, and intelligence specialist specialty tracks. Each subsection lists the training items, estimated time to complete, and expected outcome. Section 7 converts this curriculum into evaluator-reviewed qualification topics.
 
-### 6.2. Training Level of Effort
+### Training Level of Effort
 
 6.2.1. Core Training Requirement Level of Effort
 
@@ -211,7 +211,7 @@ This section identifies the training requirements that support the core, enginee
 | Software Developer | 263 hours | 92 hours | 355 hours |
 | Intelligence Specialist | 263 hours | 6 hours | 269 hours |
 
-### 6.3. Core Training Requirements
+### Core Training Requirements
 
 Core training requirements apply to all specialty tracks and provide the shared mission, security, RF, SDR, DSP, digital communications, software workflow, lab, and documentation foundation needed to support waveform development activities.
 
@@ -283,7 +283,7 @@ Training consists of the in-person Sandia GNU Radio Module 3 course. The expecte
 
 Training consists of the online Linux command line and shell scripting course. The expected outcome is that the student can navigate the command line, manage files, run scripts, use basic shell tools, and document reproducible technical steps. Estimated training time is 10 hours.
 
-### 6.4. Engineering Training Requirements
+### Engineering Training Requirements
 
 The engineering track assumes completion of the core training requirements subsection and focuses on digital signal processing depth needed to support waveform characterization, modeling, and technique development.
 
@@ -303,7 +303,7 @@ Training consists of the online `Digital Signal Processing 3: Analog vs. Digital
 
 Training consists of the online `Digital Signal Processing 4: Applications` course. The expected outcome is that the student can connect DSP concepts to practical applications, select appropriate processing approaches for approved training data, and explain results and limitations to an instructor. Estimated training time is 20 hours.
 
-### 6.5. Software Developer Training Requirements
+### Software Developer Training Requirements
 
 The software developer track assumes completion of the core training requirements subsection and focuses on SDR software workflows, application development, systems programming, memory safety, and containerized delivery.
 
@@ -343,7 +343,7 @@ Training consists of the online Docker Introduction course. The expected outcome
 
 Training consists of applied Docker and container training for reproducible tool delivery, isolated test environments, and maintainable deployment artifacts. The expected outcome is that the student can package or run an approved tool in a documented containerized environment and explain the configuration. Estimated training time is 12 hours.
 
-### 6.6. Intelligence Specialist Training Requirements
+### Intelligence Specialist Training Requirements
 
 The intelligence specialist track assumes completion of the core training requirements subsection and focuses on intelligence sources, access pathways, target context, requests for information, source handling, and documentation support needed to support waveform development activities. The Training Plan Manager may assign additional intelligence training based on billet, access, mission need, and Flight direction.
 
@@ -355,13 +355,13 @@ Training consists of Flight-led 388th Electronic Warfare Squadron intelligence t
 
 Training consists of Flight-led 453d Electronic Warfare Squadron intelligence training. Training should address local mission context, intelligence support expectations, target characterization support, source-handling considerations, and coordination with engineering and software Flight members. The expected outcome is that the student can explain how 453 EWS intelligence processes support waveform development and can identify the appropriate local coordination path for intelligence questions. Estimated training time is 3 hours.
 
-## 7. Qualification Topics and Evaluation Criteria
+## Qualification Topics and Evaluation Criteria
 
-### 7.1. Qualification Topics and Evaluation Criteria Overview
+### Qualification Topics and Evaluation Criteria Overview
 
 Section 7 is where training requirements become observable evaluation criteria. Section 6 hands-on exercises are training activities used to practice required material with instructor support, while Section 7 evaluator-defined projects are evaluation activities used by evaluators to assess applied understanding and specialty-track performance. The topic groups summarize what each student should learn, connect each topic to the primary training source in the training curriculum catalog, and provide knowledge areas that evaluators can review, discuss, and document using the Appendix B checklists. Specific pass/fail criteria remain flexible so the evaluator can tailor assessment to billet, mission assignment, prior experience, and current Flight needs. The following topic groups correspond to the core, engineering, software developer, and intelligence specialist checklists in Appendix B.
 
-### 7.2. Core Topics
+### Core Topics
 
 7.2.1. Training and Training Documentation
 
@@ -419,7 +419,7 @@ Evaluation focus: How to write and run basic Python scripts, use common data str
 
 Evaluation focus: How to navigate the Linux command line, manage files, run scripts, use basic shell tools, and document reproducible technical steps. Primary source: Linux Command Line and Shell Scripting training material in Section 6.3.17.
 
-### 7.3. Engineering Topics
+### Engineering Topics
 
 7.3.1. Fourier Analysis and Frequency-Domain Interpretation
 
@@ -512,7 +512,7 @@ Required evidence: evidence may be scaled by evaluator judgment based on billet,
 Primary source: applicable core and engineering training material in Sections 6.3.1 through 6.3.17 and 6.4.1 through 6.4.4.
 
 
-### 7.4. Software Developer Topics
+### Software Developer Topics
 
 7.4.1. Secure Coding and Dependency Management
 
@@ -589,7 +589,7 @@ Required evidence: evidence may be scaled by evaluator judgment based on billet,
 Primary source: applicable core and software developer training material in Sections 6.3.1 through 6.3.17 and 6.5.1 through 6.5.9.
 
 
-### 7.5. Intelligence Specialist Topics
+### Intelligence Specialist Topics
 
 7.5.1. Intelligence Sources and Access Pathways
 
@@ -642,7 +642,7 @@ Required evidence: evidence may be scaled by evaluator judgment based on billet,
 Primary source: 388th EWS Intelligence Training and 453 EWS Intelligence Training material in Sections 6.6.1 and 6.6.2.
 
 
-## 8. Remediation
+## Remediation
 
 8.1. Qualified Flight Members, instructors, and evaluators will provide ongoing feedback throughout training to help students complete required courses, exercises, and hands-on products. If a student needs additional support to meet a standard, the qualified Flight Member, instructor, or evaluator will document the area needing improvement and provide that information to the Training Plan Manager and Operations Lead.
 

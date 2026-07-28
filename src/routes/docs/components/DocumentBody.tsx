@@ -2,10 +2,13 @@ import { memo } from 'react';
 import MarkdownRenderer from './MarkdownRenderer';
 import SectionEditor from './SectionEditor';
 import { formatTimestamp } from '../comments/helpers';
+import { INITIAL_COUNTERS, type SectionNumbering } from '../numbering/numbering';
 import type { DocumentSection } from '../source/types';
 
 interface DocumentBodyProps {
   sections: DocumentSection[];
+  /** Generated numbering per section id, from the document-level fold. */
+  numbering: Map<string, SectionNumbering>;
   /** True when an approved member may revise this document. */
   canEdit: boolean;
   /** Id of the section currently open in the editor, if any. */
@@ -29,6 +32,7 @@ interface DocumentBodyProps {
  */
 export default function DocumentBody({
   sections,
+  numbering,
   canEdit,
   editingSectionId,
   onStartEditing,
@@ -37,23 +41,33 @@ export default function DocumentBody({
 }: DocumentBodyProps) {
   return (
     <div className="wf-doc">
-      {sections.map((section) => (
-        <DocumentSectionBlock
-          key={section.id}
-          section={section}
-          canEdit={canEdit}
-          editing={editingSectionId === section.id}
-          onStartEditing={onStartEditing}
-          onCancelEditing={onCancelEditing}
-          onSaveSection={onSaveSection}
-        />
-      ))}
+      {sections.map((section) => {
+        const numbers = numbering.get(section.id);
+        return (
+          <DocumentSectionBlock
+            key={section.id}
+            section={section}
+            labels={numbers?.labels ?? EMPTY_LABELS}
+            startCounters={numbers?.start ?? INITIAL_COUNTERS}
+            canEdit={canEdit}
+            editing={editingSectionId === section.id}
+            onStartEditing={onStartEditing}
+            onCancelEditing={onCancelEditing}
+            onSaveSection={onSaveSection}
+          />
+        );
+      })}
     </div>
   );
 }
 
+/** Stable reference so a section without labels does not break memoization. */
+const EMPTY_LABELS: string[] = [];
+
 interface SectionBlockProps {
   section: DocumentSection;
+  labels: string[];
+  startCounters: SectionNumbering['start'];
   canEdit: boolean;
   editing: boolean;
   onStartEditing(sectionId: string): void;
@@ -63,6 +77,8 @@ interface SectionBlockProps {
 
 const DocumentSectionBlock = memo(function DocumentSectionBlock({
   section,
+  labels,
+  startCounters,
   canEdit,
   editing,
   onStartEditing,
@@ -74,6 +90,7 @@ const DocumentSectionBlock = memo(function DocumentSectionBlock({
       <section>
         <SectionEditor
           initialContent={section.content}
+          startCounters={startCounters}
           onSave={(content) => onSaveSection(section.id, content)}
           onCancel={onCancelEditing}
         />
@@ -103,7 +120,7 @@ const DocumentSectionBlock = memo(function DocumentSectionBlock({
         </div>
       )}
 
-      <MarkdownRenderer content={section.content} />
+      <MarkdownRenderer content={section.content} headingLabels={labels} />
     </section>
   );
 });

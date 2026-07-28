@@ -24,6 +24,7 @@ import { usePermissions } from './comments/permissions';
 import { useDocumentOutline } from './hooks/useDocumentOutline';
 import { useDocumentSearch } from './hooks/useDocumentSearch';
 import { loadMarkdownDocument, type LoadedDocument } from './markdown/loader';
+import { numberSections } from './numbering/numbering';
 import { joinSections } from './source/sections';
 import { useDocumentSource } from './source/useDocumentSource';
 import type { DocumentSourceRepository } from './source/types';
@@ -115,6 +116,11 @@ export default function LivingDocumentPage({
 
   const search = useDocumentSearch(documentText, threads);
   const outline = useDocumentOutline(containerRef, source.revision);
+
+  // Section numbers are derived from structure and never stored, so the fold
+  // runs once per content change and feeds every section, the editor preview
+  // and the table of contents from the same result.
+  const numbering = useMemo(() => numberSections(source.sections), [source.sections]);
 
   // ---- Resolve every anchor against the current text -----------------------
   const resolutions = useMemo(() => {
@@ -262,6 +268,15 @@ export default function LivingDocumentPage({
     });
   }, [source, requireAuthor]);
 
+  const stripHeadingNumbers = useCallback(() => {
+    setActionError(null);
+    source.stripHeadingNumbers(requireAuthor()).catch((err: unknown) => {
+      setActionError(
+        err instanceof Error ? err.message : 'Could not update the headings.',
+      );
+    });
+  }, [source, requireAuthor]);
+
   const exportMarkdown = useCallback(() => {
     if (!document_) return;
 
@@ -369,6 +384,25 @@ export default function LivingDocumentPage({
         </div>
       )}
 
+      {/* One-time migration: manual numbers become generated labels. */}
+      {source.needsHeadingMigration && permissions.can('editDocument') && (
+        <div className="flex flex-wrap items-center gap-3 border border-forge-signal/40 bg-forge-signal/5 px-4 py-3">
+          <p className="flex-1 text-sm leading-relaxed text-forge-muted">
+            Some headings still contain hand-typed numbers. Section numbers are
+            now generated automatically from the document structure, so the
+            stored Markdown should not carry them. Numbered lists and code blocks
+            are not affected.
+          </p>
+          <button
+            type="button"
+            onClick={stripHeadingNumbers}
+            className="border border-forge-signal/60 px-3 py-2 font-mono text-[0.65rem] uppercase tracking-[0.12em] text-forge-signal transition-colors hover:bg-forge-signal/10"
+          >
+            Remove manual numbers
+          </button>
+        </div>
+      )}
+
       {/* Storage problems are only actionable for members who can edit. */}
       {(actionError || (source.error && permissions.can('editDocument'))) && (
         <p className="border border-red-500/40 bg-red-500/5 px-4 py-2.5 text-sm text-red-300">
@@ -408,6 +442,7 @@ export default function LivingDocumentPage({
         >
           <DocumentBody
             sections={source.sections}
+            numbering={numbering}
             canEdit={canEditDocument}
             editingSectionId={editingSectionId}
             onStartEditing={setEditingSectionId}

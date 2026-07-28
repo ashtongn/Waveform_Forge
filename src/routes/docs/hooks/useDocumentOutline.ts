@@ -2,7 +2,10 @@ import { useEffect, useState, type RefObject } from 'react';
 
 export interface OutlineHeading {
   id: string;
+  /** Authored heading text, with the generated number excluded. */
   text: string;
+  /** Generated section number, e.g. `3.2.1`, or null if unnumbered. */
+  number: string | null;
   /** 2 = `##`, 3 = `###`, 4 = `####`. */
   depth: number;
 }
@@ -13,7 +16,8 @@ export interface OutlineHeading {
  *
  * That guarantees the ids used by the TOC are byte-identical to the ones
  * `rehype-slug` generated — no need to reimplement GitHub's slug algorithm and
- * keep it in sync.
+ * keep it in sync — and that the numbers shown in the TOC are the very same
+ * generated labels rendered in the document, so the two can never disagree.
  *
  * Also tracks the heading currently in view so the TOC can highlight the active
  * section while scrolling. A top-biased root margin makes the active entry
@@ -38,7 +42,8 @@ export function useDocumentOutline(
     setHeadings(
       nodes.map((node) => ({
         id: node.id,
-        text: node.textContent?.trim() ?? '',
+        text: authoredText(node),
+        number: node.querySelector('.wf-doc__num')?.textContent?.trim() ?? null,
         depth: Number(node.tagName.slice(1)),
       })),
     );
@@ -67,4 +72,22 @@ export function useDocumentOutline(
   }, [containerRef, contentKey]);
 
   return { headings, activeId };
+}
+
+/**
+ * Heading text with decorations removed.
+ *
+ * Mirrors the rule used by the anchoring text index: anything inside a
+ * `[data-wf-ignore]` subtree is presentation, not content.
+ */
+function authoredText(heading: HTMLHeadingElement): string {
+  let text = '';
+  heading.childNodes.forEach((node) => {
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      const element = node as HTMLElement;
+      if (element.hasAttribute('data-wf-ignore')) return;
+    }
+    text += node.textContent ?? '';
+  });
+  return text.trim();
 }

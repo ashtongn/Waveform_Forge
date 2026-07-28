@@ -8,6 +8,53 @@ fixes bump the **patch** number.
 
 ---
 
+## v0.6.0 — Automatic Heading Numbering
+
+**Pushed:** 2026-07-28
+
+Section numbers are now generated from document structure instead of being typed
+into the Markdown, the way LaTeX does it. Insert a heading anywhere and
+everything below it renumbers instantly; nobody ever renumbers a document by
+hand again.
+
+### Added
+- **Numbering engine** (`numbering/numbering.ts`): a pure fold over the document
+  producing `1`, `1.1`, `1.2.1` labels from `##`/`###`/`####` depth. `#` is the
+  title and is never numbered. Fenced code blocks are skipped, so a `##` inside a
+  code sample can never be mistaken for a heading.
+- **Generated labels as decorations** (`numbering/rehypeHeadingNumbers.ts`):
+  numbers are injected as `<span data-wf-ignore>` rather than into the heading
+  text. That single decision is what keeps comment anchors, search, heading ids
+  and export unaffected by renumbering.
+- **Locked numbering in the editor.** The source you edit contains only
+  `### SDR Basics`. An outline strip above the editor shows `[3.2] SDR Basics`
+  for every heading in the section, recomputed on each keystroke, and the preview
+  renders the numbers exactly as the document will.
+- **One-time migration.** `Remove manual numbers` appears when stored sections
+  still carry hand-typed prefixes, and rewrites them in a single batch. The
+  repository copy has already been migrated: 19 heading lines changed, and all
+  148 numbered list paragraphs were left untouched.
+
+### Changed
+- The table of contents renders the same generated labels as the document rather
+  than parsing numbers out of heading text, so the two cannot disagree.
+- `MarkdownRenderer` accepts `headingLabels`; `rehype-slug` runs before the
+  numbering plugin so heading ids derive from authored text and stay stable.
+- Importing a document strips manual heading numbers, so nothing numbered is
+  ever persisted.
+
+### Notes
+- **Appendices are now numbered.** `Appendix A` and `Appendix B` were previously
+  unnumbered and become `9` and `10`. If they should stay unnumbered, an
+  opt-out marker is a small addition to the engine.
+- Comments anchored to text that included an old heading number will re-resolve
+  through the fuzzy matcher, or surface as "Detached" if they cannot.
+- The engine is a pure fold, so cross-references, promote/demote,
+  drag-and-drop reordering and figure numbering all reduce to changing section
+  content and re-folding — no consumer needs to know how a label was produced.
+
+---
+
 ## v0.5.0 — Collaborative Document Editing
 
 **Pushed:** 2026-07-28

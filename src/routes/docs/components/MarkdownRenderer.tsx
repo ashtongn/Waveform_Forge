@@ -1,8 +1,9 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import rehypeSlug from 'rehype-slug';
+import { rehypeHeadingNumbers } from '../numbering/rehypeHeadingNumbers';
 
 /**
  * MarkdownRenderer.
@@ -31,13 +32,25 @@ import rehypeSlug from 'rehype-slug';
  */
 interface MarkdownRendererProps {
   content: string;
+  /**
+   * Generated section numbers for this chunk's headings, in document order.
+   * Injected as decorations; never written into the Markdown.
+   */
+  headingLabels?: string[];
 }
 
-function MarkdownRendererBase({ content }: MarkdownRendererProps) {
+function MarkdownRendererBase({ content, headingLabels }: MarkdownRendererProps) {
+  // `rehype-slug` must run before the numbering plugin so heading ids are
+  // derived from the authored text and stay stable when the document renumbers.
+  const rehypePlugins = useMemo(
+    () => [rehypeRaw, rehypeSlug, rehypeHeadingNumbers(headingLabels ?? [])],
+    [headingLabels],
+  );
+
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
-      rehypePlugins={[rehypeRaw, rehypeSlug]}
+      rehypePlugins={rehypePlugins}
       components={{
         a: ({ href, children, ...props }) => {
           const external = Boolean(href && /^https?:\/\//i.test(href));

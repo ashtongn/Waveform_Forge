@@ -61,6 +61,14 @@
     @apply mb-2 mt-5 font-mono text-sm tracking-[0.08em] text-forge-signal;
   }
 
+  /* Generated section number.
+     Marked `data-wf-ignore`, so it is excluded from the anchoring text index
+     and from search; `user-select: none` keeps it out of copied text and out of
+     any selection used to create a comment. It is presentation, not content. */
+  .wf-doc__num {
+    @apply mr-2 select-none font-mono font-normal text-forge-muted/70;
+  }
+
   .wf-doc p {
     @apply my-3 max-w-[72ch];
   }

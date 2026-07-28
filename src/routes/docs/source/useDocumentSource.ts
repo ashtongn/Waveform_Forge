@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { describeCommentError } from '../comments/helpers';
+import {
+  hasManualHeadingNumbers,
+  stripManualHeadingNumbers,
+} from '../numbering/headings';
 import { splitSections } from './sections';
 import type { DocumentSection, DocumentSourceRepository, SectionAuthor } from './types';
 
@@ -16,8 +20,16 @@ export interface DocumentSourceState {
   /** Changes whenever the rendered text changes; used to re-index the DOM. */
   revision: string;
 
+  /**
+   * True when stored sections still carry hand-maintained heading numbers.
+   * Numbers are generated at render time now, so these must be migrated away.
+   */
+  needsHeadingMigration: boolean;
+
   importFromRepository(author: SectionAuthor): Promise<void>;
   saveSection(sectionId: string, content: string, author: SectionAuthor): Promise<void>;
+  /** One-time migration: removes manual numeric prefixes from headings. */
+  stripHeadingNumbers(author: SectionAuthor): Promise<void>;
 }
 
 /**
@@ -112,6 +124,31 @@ export function useDocumentSource(
     [documentId, repository],
   );
 
+  const needsHeadingMigration = useMemo(
+    () => live && sections.some((section) => hasManualHeadingNumbers(section.content)),
+    [live, sections],
+  );
+
+  const stripHeadingNumbers = useCallback(
+    async (author: SectionAuthor) => {
+      const updates = sections
+        .map((section) => ({
+          id: section.id,
+          content: stripManualHeadingNumbers(section.content),
+        }))
+        .filter((update, index) => update.content !== sections[index].content);
+
+      if (updates.length === 0) return;
+
+      try {
+        await repository.updateSections(documentId, updates, author);
+      } catch (err) {
+        throw new Error(describeCommentError(err));
+      }
+    },
+    [documentId, repository, sections],
+  );
+
   // Memoized: `DocumentBody` memoizes each section on its props, so returning a
   // fresh object every render would defeat it.
   return useMemo(
@@ -123,8 +160,10 @@ export function useDocumentSource(
       lastUpdatedAt: latest?.updatedAt ?? null,
       lastEditor: latest?.updatedByName ?? null,
       revision,
+      needsHeadingMigration,
       importFromRepository,
       saveSection,
+      stripHeadingNumbers,
     }),
     [
       sections,
@@ -133,8 +172,10 @@ export function useDocumentSource(
       error,
       latest,
       revision,
+      needsHeadingMigration,
       importFromRepository,
       saveSection,
+      stripHeadingNumbers,
     ],
   );
 }

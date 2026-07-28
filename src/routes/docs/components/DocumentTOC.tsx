@@ -18,6 +18,9 @@ interface OutlineSection {
  * Top-level (`##`) sections are always listed; their sub-headings collapse so a
  * several-hundred-page manual still produces a navigable sidebar. The section
  * containing the active heading auto-expands.
+ *
+ * Numbers come from the same generated labels rendered in the document — they
+ * are never parsed out of the heading text — so the two always agree.
  */
 export default function DocumentTOC({
   headings,
@@ -62,6 +65,11 @@ export default function DocumentTOC({
                 ].join(' ')}
                 title={section.heading.text}
               >
+                {section.heading.number && (
+                  <span className="mr-1.5 font-mono text-[0.72rem] text-forge-muted/70">
+                    {section.heading.number}
+                  </span>
+                )}
                 {section.heading.text}
               </button>
 
@@ -105,6 +113,11 @@ export default function DocumentTOC({
                   ].join(' ')}
                   title={child.text}
                 >
+                  {child.number && (
+                    <span className="mr-1.5 font-mono text-[0.68rem] text-forge-muted/60">
+                      {child.number}
+                    </span>
+                  )}
                   {child.text}
                 </button>
               ))}

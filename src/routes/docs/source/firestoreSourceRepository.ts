@@ -11,6 +11,7 @@ import {
   type DocumentData,
 } from 'firebase/firestore';
 import { db } from '../../../lib/firebase';
+import { stripManualHeadingNumbers } from '../numbering/headings';
 import { headingOf } from './sections';
 import type { DocumentSection, DocumentSourceRepository } from './types';
 
@@ -55,10 +56,14 @@ export const firestoreDocumentSourceRepository: DocumentSourceRepository = {
     const batch = writeBatch(db);
 
     sections.forEach((section, index) => {
+      // Section numbers are generated at render time, so nothing numbered is
+      // ever persisted — including when importing a legacy repository copy.
+      const content = stripManualHeadingNumbers(section.content);
+
       batch.set(doc(sectionsRef(documentId)), {
         order: index,
-        heading: section.heading,
-        content: section.content,
+        heading: headingOf(content),
+        content,
         updatedAt: serverTimestamp(),
         updatedByUid: author.uid,
         updatedByName: author.name,
@@ -76,6 +81,22 @@ export const firestoreDocumentSourceRepository: DocumentSourceRepository = {
       updatedByUid: author.uid,
       updatedByName: author.name,
     });
+  },
+
+  async updateSections(documentId, updates, author) {
+    const batch = writeBatch(db);
+
+    for (const update of updates) {
+      batch.update(doc(db, ROOT, documentId, SECTIONS, update.id), {
+        content: update.content,
+        heading: headingOf(update.content),
+        updatedAt: serverTimestamp(),
+        updatedByUid: author.uid,
+        updatedByName: author.name,
+      });
+    }
+
+    await batch.commit();
   },
 };
 
