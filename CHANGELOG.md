@@ -8,6 +8,50 @@ fixes bump the **patch** number.
 
 ---
 
+## v0.4.0 — Living Documents & Anchored Comments
+
+**Pushed:** 2026-07-28
+
+The Training Lab now hosts living Markdown documents alongside the interactive
+modules. `/docs/training_plan.md` is rendered directly as the Waveform
+Development Flight Training Plan — the Markdown file remains the single source
+of truth, edited outside the app and picked up automatically. Approved members
+can highlight any passage and open a Google-Docs-style review thread against it.
+
+### Added
+- **Living document page** (`/docs/:docSlug`): three-pane engineering-manual
+  layout — table of contents and search on the left, document centre, review
+  comments on the right. Collapses to slide-out panels on tablet and mobile.
+- **Living document registry** (`src/routes/docs/registry.ts`): add a Markdown
+  file to `/docs` plus one registry entry to publish another document.
+- **Anchored comments**: highlight text, add a comment, reply, edit, delete,
+  resolve and reopen. Highlights stay visible in the document and clicking one
+  focuses its thread.
+- **Durable anchors** (`anchoring/anchor.ts`): W3C Web Annotation style quote +
+  context + position selectors with fuzzy fallback, so comments survive edits to
+  the Markdown. Unresolvable comments are preserved and flagged "Detached".
+- **Unified search**: one query searches both the document body and the comment
+  threads, with inline match highlighting and next/previous navigation.
+- **Version banner**: version, last-updated and last-editor read from the
+  document's YAML front matter.
+- **`docComments` collection** with Firestore rules: public read,
+  approved-member authoring, author-or-admin edit/delete.
+
+### Changed
+- **Training nav is now a single dropdown.** "Training" and "Training Plan" were
+  crowding the top bar, so they collapse into one **Training** tab that expands
+  to *Interactive Trainings* and *Training Plan*. The tab stays highlighted
+  anywhere in the section, and the new reusable `NavDropdown` component keeps the
+  header from growing as more training destinations are added.
+
+### Notes
+- Permission checks are centralized in `comments/permissions.ts`; unapproved and
+  signed-out visitors get a clean read-only manual with no comment controls.
+- Storage sits behind the `CommentRepository` interface — the Firestore
+  implementation is injected in one place (`DocumentRoute.tsx`).
+
+---
+
 ## v0.3.0 — Training Lab Catalog
 
 **Pushed:** 2026-07-14

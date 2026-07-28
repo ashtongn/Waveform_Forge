@@ -14,6 +14,171 @@
   }
 }
 
+/* ==========================================================================
+   Living documents (/docs/:slug)
+   Typography tuned for engineering-specification reading rather than for a
+   web article: tight vertical rhythm, monospace numerics in tables, generous
+   line height, and a measured content width.
+   ========================================================================== */
+@layer components {
+  .wf-doc {
+    @apply text-[0.94rem] leading-[1.75] text-forge-text/90;
+    /* Subtle technical grid, consistent with the rest of Waveform Forge. */
+    background-image:
+      linear-gradient(to right, rgba(34, 211, 238, 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(34, 211, 238, 0.04) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  /* Cheap virtualization: the browser skips layout and paint for off-screen
+     sections while keeping the text in the DOM, so anchoring, search and
+     find-in-page all continue to work on very long documents. */
+  .wf-doc > * {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 320px;
+  }
+
+  .wf-doc h1,
+  .wf-doc h2,
+  .wf-doc h3,
+  .wf-doc h4 {
+    @apply font-semibold uppercase tracking-tight text-forge-text;
+    scroll-margin-top: 5rem;
+  }
+
+  .wf-doc h1 {
+    @apply mb-4 mt-0 border-b border-forge-border pb-3 text-2xl sm:text-3xl;
+  }
+
+  .wf-doc h2 {
+    @apply mb-3 mt-10 border-l-2 border-forge-accent/70 pl-3 text-xl sm:text-2xl;
+  }
+
+  .wf-doc h3 {
+    @apply mb-2 mt-7 text-base text-forge-accent sm:text-lg;
+  }
+
+  .wf-doc h4 {
+    @apply mb-2 mt-5 font-mono text-sm tracking-[0.08em] text-forge-signal;
+  }
+
+  .wf-doc p {
+    @apply my-3 max-w-[72ch];
+  }
+
+  .wf-doc ul,
+  .wf-doc ol {
+    @apply my-3 max-w-[72ch] space-y-1.5 pl-6;
+  }
+
+  .wf-doc ul {
+    @apply list-disc marker:text-forge-accent/60;
+  }
+
+  .wf-doc ol {
+    @apply list-decimal marker:font-mono marker:text-forge-accent/60;
+  }
+
+  .wf-doc li > ul,
+  .wf-doc li > ol {
+    @apply my-1.5;
+  }
+
+  /* GFM task lists */
+  .wf-doc li:has(> input[type='checkbox']) {
+    @apply list-none -ml-5;
+  }
+
+  .wf-doc input[type='checkbox'] {
+    @apply mr-2 h-3.5 w-3.5 translate-y-[1px] accent-forge-accent;
+  }
+
+  .wf-doc a {
+    @apply text-forge-accent underline decoration-forge-accent/30 underline-offset-2 transition-colors hover:decoration-forge-accent;
+  }
+
+  .wf-doc blockquote {
+    @apply my-4 max-w-[72ch] border-l-2 border-forge-signal/60 bg-white/[0.02] py-2 pl-4 pr-3 text-forge-muted;
+  }
+
+  .wf-doc hr {
+    @apply my-8 border-forge-border;
+  }
+
+  .wf-doc code {
+    @apply rounded-sm bg-black/40 px-1.5 py-0.5 font-mono text-[0.85em] text-forge-signal;
+  }
+
+  .wf-doc pre {
+    @apply my-4 overflow-x-auto border border-forge-border bg-black/50 p-4;
+  }
+
+  .wf-doc pre code {
+    @apply bg-transparent p-0 text-[0.82rem] leading-relaxed text-forge-text/90;
+  }
+
+  .wf-doc__table-scroll {
+    @apply my-5 overflow-x-auto border border-forge-border;
+  }
+
+  .wf-doc table {
+    @apply w-full border-collapse text-sm;
+  }
+
+  .wf-doc thead {
+    @apply bg-black/40;
+  }
+
+  .wf-doc th {
+    @apply border-b border-forge-border px-3 py-2 text-left font-mono text-[0.68rem] uppercase tracking-[0.1em] text-forge-muted;
+  }
+
+  .wf-doc td {
+    @apply border-b border-forge-border/60 px-3 py-2 align-top text-forge-text/85;
+  }
+
+  .wf-doc tbody tr:hover {
+    @apply bg-white/[0.02];
+  }
+
+  .wf-doc img {
+    @apply my-4 max-w-full border border-forge-border;
+  }
+}
+
+@layer utilities {
+  /* ---- Anchored-comment highlights ------------------------------------- */
+  .wf-hl {
+    @apply rounded-[2px] transition-colors duration-200;
+  }
+
+  .wf-hl--comment {
+    @apply cursor-pointer bg-amber-300/20 shadow-[inset_0_-1px_0_0_rgba(252,211,77,0.55)];
+  }
+
+  .wf-hl--comment:hover {
+    @apply bg-amber-300/35;
+  }
+
+  .wf-hl--resolved {
+    @apply cursor-pointer bg-forge-signal/10 shadow-[inset_0_-1px_0_0_rgba(74,222,128,0.35)];
+  }
+
+  .wf-hl--search {
+    @apply bg-forge-accent/20;
+  }
+
+  .wf-hl--search-active {
+    @apply bg-forge-accent/50 text-forge-bg;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .wf-hl {
+      transition: none;
+    }
+  }
+}
+
 @layer utilities {
   /* Sweeping "receive scan" indicator for the Signal Bits Lab training. */
   @keyframes bits-scan {
