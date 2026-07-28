@@ -58,6 +58,33 @@ number**: 177 numbered items, **zero mismatches**.
 - 19 numbered headings had their prefixes stripped.
 - Bullet lists, tables and fenced code were not touched.
 
+### Authoring
+Never type a number. Write structure and the renderer supplies the rest:
+
+```
+##      ->  1, 2, 3        top-level section
+###     ->  3.5            shares its counter with clauses
+####    ->  6.3.1
+1.      ->  clause, one depth below the nearest heading
+   1.   ->  sub-clause (three-space indent)
+-       ->  bullet, never numbered - the escape hatch for ordinary lists
+```
+
+The digit on a clause is irrelevant; only list structure matters, so `1.` on
+every item is fine. `<!-- appendix -->` switches everything after it to letters.
+Fenced code is skipped, so a `##` in a code sample is never a heading.
+
+To insert a sub-section, open the enclosing section, type the heading where it
+belongs, and watch the editor's numbering strip recompute. Everything below
+renumbers on save, and the contents list, heading ids, comment anchors and
+search all follow without further work.
+
+**Known gap:** storage splits at `##` only during import, so a new top-level
+section typed into an existing section's editor renders and numbers correctly
+but shares that section's storage record. Adding, deleting and reordering
+top-level sections is not yet supported in the app; edit `/docs/training_plan.md`
+and re-import for a clean split.
+
 ### Notes
 - Terminal punctuation cleanly separates titles from clauses in this document:
   titles run to 103 characters and never end in `.`, clauses start at 44 and
