@@ -48,4 +48,11 @@ export interface DocumentSourceRepository {
     content: string,
     author: SectionAuthor,
   ): Promise<void>;
+
+  /** Atomic multi-section rewrite, used by one-time migrations. */
+  updateSections(
+    documentId: string,
+    updates: Array<{ id: string; content: string }>,
+    author: SectionAuthor,
+  ): Promise<void>;
 }

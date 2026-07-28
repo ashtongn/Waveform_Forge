@@ -1,8 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import MarkdownRenderer from './MarkdownRenderer';
+import { numberMarkdown, type NumberingState } from '../numbering/numbering';
 
 interface SectionEditorProps {
   initialContent: string;
+  /** Fold state entering this section, so the draft numbers correctly. */
+  startCounters: NumberingState;
   onSave(content: string): Promise<void>;
   onCancel(): void;
 }
@@ -17,11 +20,18 @@ const draftKey = (content: string) => `wf-draft-${hash(content)}`;
  * members edit the source and can flip to a live preview. Drafts are mirrored to
  * `localStorage`, so a dropped connection or a stray click does not lose work.
  *
+ * Section numbers are generated, never authored. The source you type contains
+ * only `### SDR Basics`; the outline strip above the editor shows the numbers
+ * those headings will receive, recomputed on every keystroke, and the preview
+ * renders them exactly as the document will. There is nothing to mis-type,
+ * because the numbers do not exist in the text being edited.
+ *
  * The whole editor is marked `data-wf-ignore` so its chrome never enters the
  * comment-anchoring text index.
  */
 export default function SectionEditor({
   initialContent,
+  startCounters,
   onSave,
   onCancel,
 }: SectionEditorProps) {
@@ -31,6 +41,17 @@ export default function SectionEditor({
   const [error, setError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const key = useRef(draftKey(initialContent)).current;
+
+  // Renumbered on every keystroke: insert a heading and everything below it in
+  // this section immediately shows its new number.
+  const numbered = useMemo(
+    () => numberMarkdown(value, startCounters),
+    [value, startCounters],
+  );
+  const labels = useMemo(
+    () => numbered.labels.map((item) => item.label),
+    [numbered],
+  );
 
   // Restore a previous draft for this section, if one survived.
   useEffect(() => {
@@ -73,9 +94,31 @@ export default function SectionEditor({
         </button>
       </div>
 
+      {numbered.labels.length > 0 && (
+        <div className="flex flex-wrap gap-x-4 gap-y-1 border-b border-forge-border/60 bg-black/20 px-4 py-2">
+          <span className="font-mono text-[0.55rem] uppercase tracking-[0.14em] text-forge-muted/70">
+            Generated numbering
+          </span>
+          {numbered.labels
+            .filter((item) => item.kind === 'heading')
+            .map((item, index) => (
+              <span
+                key={`${item.label ?? 'none'}-${index}`}
+                className="font-mono text-[0.65rem] text-forge-muted"
+                style={{ paddingLeft: `${(item.depth - 2) * 0.75}rem` }}
+              >
+                {item.label && (
+                  <span className="select-none text-forge-accent">[{item.label}]</span>
+                )}{' '}
+                {item.text}
+              </span>
+            ))}
+        </div>
+      )}
+
       {preview ? (
         <div className="wf-doc px-4 py-3">
-          <MarkdownRenderer content={value} />
+          <MarkdownRenderer content={value} headingLabels={labels} />
         </div>
       ) : (
         <textarea

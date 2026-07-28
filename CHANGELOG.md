@@ -8,6 +8,95 @@ fixes bump the **patch** number.
 
 ---
 
+## v0.6.0 — Automatic Hierarchical Numbering
+
+**Pushed:** 2026-07-28
+
+Numbering is now generated from document structure instead of typed into the
+Markdown, the way LaTeX does it. Insert, delete or move anything and everything
+below it renumbers instantly; nobody maintains a section number by hand again.
+
+### Added
+- **Numbering engine** (`numbering/`): a pure fold over the document producing
+  `1`, `3.2`, `6.3.1` labels. It numbers two kinds of item and they **share
+  counters** — headings (`##`–`######`) and clauses (ordered-list items, the
+  numbered paragraphs a specification is built from). That is what reproduces
+  real specification numbering: a section opening with clauses `3.1`–`3.4` and
+  then introducing a sub-heading numbers that heading `3.5`, not `3.1`. Clause
+  depth follows list nesting, so a nested list inside `3.1` reads `3.1.1`.
+  Fenced code is skipped throughout.
+- **Appendix mode.** An `<!-- appendix -->` marker switches numbering to
+  letters, LaTeX's `\appendix`. `Appendix A` renders unnumbered — its text
+  already says so — and its children become `A.1`, `A.2`.
+- **Generated labels as decorations** (`rehypeHeadingNumbers.ts`): numbers are
+  injected as `<span data-wf-ignore>` rather than into the text. That single
+  decision is what keeps comment anchors, search, heading ids and export
+  unaffected by renumbering.
+- **Locked numbering in the editor.** The source you edit contains only
+  `### SDR Basics`. An outline strip shows `[3.2] SDR Basics` for every heading
+  in the section, recomputed on each keystroke, and the preview renders numbers
+  exactly as the document will. There is nothing numbered in the source to
+  mistype.
+- **One-time migration** (`numbering/migrate.ts`), surfaced in-app as
+  `Remove manual numbers` and already applied to the repository copy.
+
+### Changed
+- The table of contents renders the same generated labels as the document rather
+  than parsing numbers out of heading text, and is limited to `##`/`###` so it
+  stays navigable now that deeper levels are headings too.
+- `rehype-slug` runs before the numbering plugin, so heading ids derive from
+  authored text and stay stable across renumbering.
+- Importing a document runs the migration, so nothing numbered is ever persisted.
+
+### Migration results
+The repository copy was migrated and **verified by regenerating every original
+number**: 177 numbered items, **zero mismatches**.
+
+- 148 legacy numbered lines rewritten — 107 were titles (short, no terminal
+  punctuation) and became real headings that now appear in the outline; 41 were
+  prose clauses and became ordered-list items.
+- 19 numbered headings had their prefixes stripped.
+- Bullet lists, tables and fenced code were not touched.
+
+### Authoring
+Never type a number. Write structure and the renderer supplies the rest:
+
+```
+##      ->  1, 2, 3        top-level section
+###     ->  3.5            shares its counter with clauses
+####    ->  6.3.1
+1.      ->  clause, one depth below the nearest heading
+   1.   ->  sub-clause (three-space indent)
+-       ->  bullet, never numbered - the escape hatch for ordinary lists
+```
+
+The digit on a clause is irrelevant; only list structure matters, so `1.` on
+every item is fine. `<!-- appendix -->` switches everything after it to letters.
+Fenced code is skipped, so a `##` in a code sample is never a heading.
+
+To insert a sub-section, open the enclosing section, type the heading where it
+belongs, and watch the editor's numbering strip recompute. Everything below
+renumbers on save, and the contents list, heading ids, comment anchors and
+search all follow without further work.
+
+**Known gap:** storage splits at `##` only during import, so a new top-level
+section typed into an existing section's editor renders and numbers correctly
+but shares that section's storage record. Adding, deleting and reordering
+top-level sections is not yet supported in the app; edit `/docs/training_plan.md`
+and re-import for a clean split.
+
+### Notes
+- Terminal punctuation cleanly separates titles from clauses in this document:
+  titles run to 103 characters and never end in `.`, clauses start at 44 and
+  always do. `Who Is Fourier?` is a title, so `?` is not treated as terminal.
+- Comments anchored to text that included an old number will re-resolve through
+  the fuzzy matcher, or surface as "Detached".
+- The engine is a pure fold, so cross-references, promote/demote, drag-and-drop
+  reordering and figure numbering all reduce to changing section content and
+  re-folding — no consumer needs to know how a label was produced.
+
+---
+
 ## v0.5.0 — Collaborative Document Editing
 
 **Pushed:** 2026-07-28
