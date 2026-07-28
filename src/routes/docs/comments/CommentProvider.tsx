@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { CommentContext, type CommentContextValue } from './commentContext';
-import { buildThreads, collectAuthors } from './helpers';
+import { buildThreads, collectAuthors, describeCommentError } from './helpers';
 import { usePermissions } from './permissions';
 import type { CommentRepository, DocumentComment, ThreadStatus } from './types';
 
@@ -43,7 +43,7 @@ export default function CommentProvider({
         setLoading(false);
       },
       (err) => {
-        setError(err.message);
+        setError(describeCommentError(err));
         setLoading(false);
       },
     );
@@ -65,12 +65,16 @@ export default function CommentProvider({
       if (!permissions.can('createThread')) {
         throw new Error('You do not have permission to comment on this document.');
       }
-      return repository.createThread({
-        documentId,
-        anchor,
-        body: body.trim(),
-        author: requireActor(),
-      });
+      try {
+        return await repository.createThread({
+          documentId,
+          anchor,
+          body: body.trim(),
+          author: requireActor(),
+        });
+      } catch (err) {
+        throw new Error(describeCommentError(err));
+      }
     },
     [documentId, permissions, repository, requireActor],
   );
@@ -80,13 +84,17 @@ export default function CommentProvider({
       if (!permissions.can('reply')) {
         throw new Error('You do not have permission to reply.');
       }
-      await repository.createReply({
-        documentId,
-        threadId,
-        parentId,
-        body: body.trim(),
-        author: requireActor(),
-      });
+      try {
+        await repository.createReply({
+          documentId,
+          threadId,
+          parentId,
+          body: body.trim(),
+          author: requireActor(),
+        });
+      } catch (err) {
+        throw new Error(describeCommentError(err));
+      }
     },
     [documentId, permissions, repository, requireActor],
   );
@@ -102,7 +110,11 @@ export default function CommentProvider({
       if (!permissions.can('edit', { authorUid: target?.author.uid })) {
         throw new Error('You may only edit your own comments.');
       }
-      await repository.updateBody(commentId, body.trim());
+      try {
+        await repository.updateBody(commentId, body.trim());
+      } catch (err) {
+        throw new Error(describeCommentError(err));
+      }
     },
     [findComment, permissions, repository],
   );
@@ -113,7 +125,11 @@ export default function CommentProvider({
       if (!permissions.can('delete', { authorUid: target?.author.uid })) {
         throw new Error('You may only delete your own comments.');
       }
-      await repository.remove(commentId);
+      try {
+        await repository.remove(commentId);
+      } catch (err) {
+        throw new Error(describeCommentError(err));
+      }
     },
     [findComment, permissions, repository],
   );
@@ -125,7 +141,11 @@ export default function CommentProvider({
       if (!permissions.can(action, { authorUid: target?.author.uid })) {
         throw new Error('You do not have permission to change this thread.');
       }
-      await repository.setThreadStatus(threadId, status);
+      try {
+        await repository.setThreadStatus(threadId, status);
+      } catch (err) {
+        throw new Error(describeCommentError(err));
+      }
     },
     [findComment, permissions, repository],
   );

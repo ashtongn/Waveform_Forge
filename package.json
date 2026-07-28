@@ -9,7 +9,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "deploy:rules": "npx --yes firebase-tools deploy --only firestore:rules"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type RefObject } from 'react';
+import { createPortal } from 'react-dom';
 import { rangeToOffsets, type TextIndex } from '../anchoring/textOffsets';
 
 interface SelectionToolbarProps {
@@ -13,10 +14,15 @@ interface SelectionToolbarProps {
 interface ToolbarState {
   top: number;
   left: number;
+  /** True when the toolbar is rendered under the selection instead of over it. */
+  below: boolean;
   start: number;
   end: number;
   quote: string;
 }
+
+/** Vertical room the toolbar needs above the selection before it flips below. */
+const TOOLBAR_CLEARANCE = 64;
 
 /**
  * SelectionToolbar — the Google-Docs-style floating "Add comment" affordance.
@@ -25,8 +31,12 @@ interface ToolbarState {
  * false no listeners are attached at all, so unapproved visitors get completely
  * normal browser text selection with zero commenting UI — not a disabled button.
  *
- * The toolbar is positioned with `position: fixed` against the live selection
- * rectangle, so it tracks correctly inside scrollable tables and code blocks.
+ * The toolbar is rendered through a portal on `document.body` and positioned
+ * with `position: fixed` against the live selection rectangle. The portal
+ * guarantees it sits in its own top-level stacking context, so the browser's
+ * native selection shading can never paint through it, and it tracks correctly
+ * inside scrollable tables and code blocks. When the selection starts near the
+ * top of the viewport the toolbar flips underneath rather than going off-screen.
  */
 export default function SelectionToolbar({
   containerRef,
@@ -58,9 +68,18 @@ export default function SelectionToolbar({
     const rect = range.getBoundingClientRect();
     if (rect.width === 0 && rect.height === 0) return setState(null);
 
+    // Anchor to the first line of the selection, or the last line when there is
+    // not enough headroom, so the toolbar never covers the highlighted text.
+    const rects = Array.from(range.getClientRects());
+    const firstLine = rects[0] ?? rect;
+    const lastLine = rects[rects.length - 1] ?? rect;
+    const below = firstLine.top < TOOLBAR_CLEARANCE;
+    const line = below ? lastLine : firstLine;
+
     setState({
-      top: rect.top,
-      left: rect.left + rect.width / 2,
+      top: below ? line.bottom : line.top,
+      left: line.left + line.width / 2,
+      below,
       start: offsets.start,
       end: offsets.end,
       quote,
@@ -93,9 +112,12 @@ export default function SelectionToolbar({
 
   if (!enabled || !state) return null;
 
-  return (
+  return createPortal(
     <div
-      className="fixed z-40 -translate-x-1/2 -translate-y-full pb-2"
+      className={[
+        'fixed z-[60] isolate -translate-x-1/2 select-none',
+        state.below ? 'pt-2' : '-translate-y-full pb-2',
+      ].join(' ')}
       style={{ top: state.top, left: state.left }}
     >
       <button
@@ -107,11 +129,12 @@ export default function SelectionToolbar({
           window.getSelection()?.removeAllRanges();
           setState(null);
         }}
-        className="flex items-center gap-2 border border-forge-accent/60 bg-forge-panel px-3 py-2 font-mono text-[0.68rem] uppercase tracking-[0.12em] text-forge-accent shadow-lg shadow-black/40 transition-colors hover:bg-forge-accent/10"
+        className="flex items-center gap-2 border border-forge-accent/60 bg-forge-panel px-3 py-2 font-mono text-[0.68rem] uppercase tracking-[0.12em] text-forge-accent shadow-lg shadow-black/60 transition-colors hover:bg-forge-accent/10"
       >
         <span aria-hidden="true">💬</span>
         Add comment
       </button>
-    </div>
+    </div>,
+    document.body,
   );
 }

@@ -8,9 +8,12 @@ rules_version = '2';
 //   - Each signed-in user has a /profiles/{uid} document:
 //       { email, role: 'member'|'admin', status: 'pending'|'approved'|'denied',
 //         createdAt }
-//   - ADMIN AUTHORITY comes ONLY from the hard-coded UID below — never from the
-//     `role` field (a user could otherwise try to set their own role). The
-//     `role` field is informational.
+//   - ADMIN AUTHORITY comes from the hard-coded bootstrap UID below, or from a
+//     profile whose `role` was set to 'admin' BY AN EXISTING ADMIN. Users can
+//     never grant themselves a role: profile creation forces role='member', and
+//     the only self-update permitted is a denied -> pending re-request that
+//     touches the `status` key alone. This keeps the rules in agreement with the
+//     application UI, which also treats `role == 'admin'` as admin.
 //   - A user may create ONLY their own profile, and only as a pending member.
 //   - A user may NOT approve themselves or change their own role.
 //   - A denied user may move their OWN status back to 'pending' (re-request).
@@ -33,18 +36,32 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    function isAdmin() {
-      return isSignedIn() && request.auth.uid == adminUid();
+    function profileRef() {
+      return /databases/$(database)/documents/profiles/$(request.auth.uid);
+    }
+
+    // Guards every profile lookup. Without it, a signed-in user who has no
+    // profile document yet (the moment between sign-up and the profile write)
+    // makes get() return null, and the null dereference fails the WHOLE rule
+    // expression rather than simply evaluating to false.
+    function hasProfile() {
+      return isSignedIn() && exists(profileRef());
     }
 
     function myProfile() {
-      return get(
-        /databases/$(database)/documents/profiles/$(request.auth.uid)
-      ).data;
+      return get(profileRef()).data;
+    }
+
+    function isAdmin() {
+      return isSignedIn()
+        && (
+          request.auth.uid == adminUid()
+          || (hasProfile() && myProfile().role == 'admin')
+        );
     }
 
     function isApproved() {
-      return isSignedIn() && myProfile().status == 'approved';
+      return hasProfile() && myProfile().status == 'approved';
     }
 
     // ---- profiles ----------------------------------------------------------

@@ -30,6 +30,7 @@ export default function CommentThreadCard({
   const { reply, setThreadStatus } = useComments();
   const permissions = usePermissions();
   const [replying, setReplying] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const isResolved = thread.status === 'resolved';
   const canReply = permissions.can('reply');
@@ -91,7 +92,13 @@ export default function CommentThreadCard({
             type="button"
             onClick={(event) => {
               event.stopPropagation();
-              void setThreadStatus(thread.id, isResolved ? 'open' : 'resolved');
+              setActionError(null);
+              setThreadStatus(thread.id, isResolved ? 'open' : 'resolved').catch(
+                (err: unknown) =>
+                  setActionError(
+                    err instanceof Error ? err.message : 'Could not update the thread.',
+                  ),
+              );
             }}
             className="font-mono text-[0.62rem] uppercase tracking-[0.12em] text-forge-muted transition-colors hover:text-forge-text"
           >
@@ -99,6 +106,10 @@ export default function CommentThreadCard({
           </button>
         )}
       </div>
+
+      {actionError && (
+        <p className="mt-2 text-xs leading-snug text-red-400">{actionError}</p>
+      )}
 
       {replying && (
         <div className="mt-2" onClick={(event) => event.stopPropagation()}>
@@ -123,6 +134,7 @@ function CommentBody({ comment }: { comment: DocumentComment }) {
   const { editComment, deleteComment } = useComments();
   const permissions = usePermissions();
   const [editing, setEditing] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const target = { authorUid: comment.author.uid };
   const canEdit = permissions.can('edit', target);
@@ -179,7 +191,12 @@ function CommentBody({ comment }: { comment: DocumentComment }) {
               type="button"
               onClick={(event) => {
                 event.stopPropagation();
-                void deleteComment(comment.id);
+                setActionError(null);
+                deleteComment(comment.id).catch((err: unknown) =>
+                  setActionError(
+                    err instanceof Error ? err.message : 'Could not delete the comment.',
+                  ),
+                );
               }}
               className="font-mono text-[0.58rem] uppercase tracking-[0.1em] text-forge-muted/70 transition-colors hover:text-red-400"
             >
@@ -187,6 +204,10 @@ function CommentBody({ comment }: { comment: DocumentComment }) {
             </button>
           )}
         </div>
+      )}
+
+      {actionError && (
+        <p className="mt-1 text-xs leading-snug text-red-400">{actionError}</p>
       )}
     </div>
   );
