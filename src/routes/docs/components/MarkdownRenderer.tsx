@@ -33,10 +33,10 @@ import { rehypeHeadingNumbers } from '../numbering/rehypeHeadingNumbers';
 interface MarkdownRendererProps {
   content: string;
   /**
-   * Generated section numbers for this chunk's headings, in document order.
-   * Injected as decorations; never written into the Markdown.
+   * Generated numbers for this chunk's headings and clauses, in document
+   * order. Injected as decorations; never written into the Markdown.
    */
-  headingLabels?: string[];
+  headingLabels?: Array<string | null>;
 }
 
 function MarkdownRendererBase({ content, headingLabels }: MarkdownRendererProps) {

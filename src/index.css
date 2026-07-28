@@ -69,6 +69,22 @@
     @apply mr-2 select-none font-mono font-normal text-forge-muted/70;
   }
 
+  /* Clause list: top-level ordered lists are the numbered paragraphs of an
+     engineering specification. The native marker is suppressed because the
+     number is generated and injected inline, so it can carry the full
+     hierarchical label (`6.3.1`) rather than a flat `1.`. */
+  .wf-doc ol.wf-clauses {
+    @apply list-none pl-0;
+  }
+
+  .wf-doc ol.wf-clauses > li {
+    @apply my-0;
+  }
+
+  .wf-doc__clause-num {
+    @apply mr-2 select-none font-mono text-[0.85em] text-forge-accent/80;
+  }
+
   .wf-doc p {
     @apply my-3 max-w-[72ch];
   }

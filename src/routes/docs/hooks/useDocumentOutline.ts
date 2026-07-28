@@ -35,8 +35,10 @@ export function useDocumentOutline(
     const container = containerRef.current;
     if (!container) return;
 
+    // Limited to `##` and `###`: the document numbers deeper levels, but a
+    // contents list several hundred entries long stops being navigable.
     const nodes = Array.from(
-      container.querySelectorAll<HTMLHeadingElement>('h2[id], h3[id], h4[id]'),
+      container.querySelectorAll<HTMLHeadingElement>('h2[id], h3[id]'),
     );
 
     setHeadings(

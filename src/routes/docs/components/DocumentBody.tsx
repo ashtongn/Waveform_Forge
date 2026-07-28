@@ -2,14 +2,13 @@ import { memo } from 'react';
 import MarkdownRenderer from './MarkdownRenderer';
 import SectionEditor from './SectionEditor';
 import { formatTimestamp } from '../comments/helpers';
-import { INITIAL_COUNTERS, type SectionNumbering } from '../numbering/numbering';
+import { INITIAL_STATE, type SectionNumbering } from '../numbering/numbering';
 import type { DocumentSection } from '../source/types';
 
 interface DocumentBodyProps {
   sections: DocumentSection[];
   /** Generated numbering per section id, from the document-level fold. */
-  numbering: Map<string, SectionNumbering>;
-  /** True when an approved member may revise this document. */
+  numbering: Map<string, SectionNumbering>;  /** True when an approved member may revise this document. */
   canEdit: boolean;
   /** Id of the section currently open in the editor, if any. */
   editingSectionId: string | null;
@@ -48,7 +47,7 @@ export default function DocumentBody({
             key={section.id}
             section={section}
             labels={numbers?.labels ?? EMPTY_LABELS}
-            startCounters={numbers?.start ?? INITIAL_COUNTERS}
+            startCounters={numbers?.start ?? INITIAL_STATE}
             canEdit={canEdit}
             editing={editingSectionId === section.id}
             onStartEditing={onStartEditing}
@@ -62,11 +61,11 @@ export default function DocumentBody({
 }
 
 /** Stable reference so a section without labels does not break memoization. */
-const EMPTY_LABELS: string[] = [];
+const EMPTY_LABELS: Array<string | null> = [];
 
 interface SectionBlockProps {
   section: DocumentSection;
-  labels: string[];
+  labels: Array<string | null>;
   startCounters: SectionNumbering['start'];
   canEdit: boolean;
   editing: boolean;

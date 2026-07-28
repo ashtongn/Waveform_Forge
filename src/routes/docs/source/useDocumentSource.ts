@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { describeCommentError } from '../comments/helpers';
 import {
-  hasManualHeadingNumbers,
-  stripManualHeadingNumbers,
-} from '../numbering/headings';
+  migrateManualNumbering,
+  needsNumberingMigration,
+} from '../numbering/migrate';
 import { splitSections } from './sections';
 import type { DocumentSection, DocumentSourceRepository, SectionAuthor } from './types';
 
@@ -125,7 +125,7 @@ export function useDocumentSource(
   );
 
   const needsHeadingMigration = useMemo(
-    () => live && sections.some((section) => hasManualHeadingNumbers(section.content)),
+    () => live && sections.some((section) => needsNumberingMigration(section.content)),
     [live, sections],
   );
 
@@ -134,7 +134,7 @@ export function useDocumentSource(
       const updates = sections
         .map((section) => ({
           id: section.id,
-          content: stripManualHeadingNumbers(section.content),
+          content: migrateManualNumbering(section.content).markdown,
         }))
         .filter((update, index) => update.content !== sections[index].content);
 

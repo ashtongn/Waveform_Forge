@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import MarkdownRenderer from './MarkdownRenderer';
-import { numberMarkdown, type CounterState } from '../numbering/numbering';
+import { numberMarkdown, type NumberingState } from '../numbering/numbering';
 
 interface SectionEditorProps {
   initialContent: string;
-  /** Counter state entering this section, so the draft numbers correctly. */
-  startCounters: CounterState;
+  /** Fold state entering this section, so the draft numbers correctly. */
+  startCounters: NumberingState;
   onSave(content: string): Promise<void>;
   onCancel(): void;
 }
@@ -49,7 +49,7 @@ export default function SectionEditor({
     [value, startCounters],
   );
   const labels = useMemo(
-    () => numbered.headings.map((heading) => heading.label),
+    () => numbered.labels.map((item) => item.label),
     [numbered],
   );
 
@@ -94,21 +94,25 @@ export default function SectionEditor({
         </button>
       </div>
 
-      {numbered.headings.length > 0 && (
+      {numbered.labels.length > 0 && (
         <div className="flex flex-wrap gap-x-4 gap-y-1 border-b border-forge-border/60 bg-black/20 px-4 py-2">
           <span className="font-mono text-[0.55rem] uppercase tracking-[0.14em] text-forge-muted/70">
             Generated numbering
           </span>
-          {numbered.headings.map((heading, index) => (
-            <span
-              key={`${heading.label}-${index}`}
-              className="font-mono text-[0.65rem] text-forge-muted"
-              style={{ paddingLeft: `${(heading.depth - 2) * 0.75}rem` }}
-            >
-              <span className="select-none text-forge-accent">[{heading.label}]</span>{' '}
-              {heading.text}
-            </span>
-          ))}
+          {numbered.labels
+            .filter((item) => item.kind === 'heading')
+            .map((item, index) => (
+              <span
+                key={`${item.label ?? 'none'}-${index}`}
+                className="font-mono text-[0.65rem] text-forge-muted"
+                style={{ paddingLeft: `${(item.depth - 2) * 0.75}rem` }}
+              >
+                {item.label && (
+                  <span className="select-none text-forge-accent">[{item.label}]</span>
+                )}{' '}
+                {item.text}
+              </span>
+            ))}
         </div>
       )}
 

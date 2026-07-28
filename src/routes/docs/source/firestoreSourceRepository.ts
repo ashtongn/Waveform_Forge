@@ -11,7 +11,7 @@ import {
   type DocumentData,
 } from 'firebase/firestore';
 import { db } from '../../../lib/firebase';
-import { stripManualHeadingNumbers } from '../numbering/headings';
+import { migrateManualNumbering } from '../numbering/migrate';
 import { headingOf } from './sections';
 import type { DocumentSection, DocumentSourceRepository } from './types';
 
@@ -56,9 +56,9 @@ export const firestoreDocumentSourceRepository: DocumentSourceRepository = {
     const batch = writeBatch(db);
 
     sections.forEach((section, index) => {
-      // Section numbers are generated at render time, so nothing numbered is
-      // ever persisted — including when importing a legacy repository copy.
-      const content = stripManualHeadingNumbers(section.content);
+      // Numbering is generated at render time, so nothing numbered is ever
+      // persisted — including when importing a legacy repository copy.
+      const content = migrateManualNumbering(section.content).markdown;
 
       batch.set(doc(sectionsRef(documentId)), {
         order: index,
