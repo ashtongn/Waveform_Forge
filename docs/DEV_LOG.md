@@ -7,6 +7,38 @@ Most recent work is at the top.
 
 ---
 
+## Equipment Export (v0.7.0)
+
+Goal: let members pull the equipment inventory out of the app in a readable
+form for reports, sharing, and archiving — as CSV, Markdown, or PDF.
+
+Design: client-only, zero new dependencies. All generation runs in the browser
+on data that's already loaded, so there is no new network or Firestore surface.
+
+- **One normalization layer, three formats.** `export/flatten.ts` turns
+  `EquipmentItem[]` into a flat, presentation-ready `ExportRow[]` (derived
+  available / checked-out counts, headline status, and formatted holder
+  strings). CSV, Markdown, and the print/PDF document all render from that same
+  shape, so they can't drift apart.
+- **`export/exporters.ts`** holds the pure builders. `toCsv` follows RFC 4180
+  (quote fields containing commas/quotes/newlines, `""` escaping), prepends a
+  UTF-8 BOM so Excel reads accents, and prefixes any cell starting with
+  `= + - @` with a quote to defuse spreadsheet formula injection. `toMarkdown`
+  emits GFM tables grouped by group name with a totals summary. `toPrintableHtml`
+  is a standalone light-theme document tuned for paper — landscape `@page`,
+  `thead` repeated on every page, and `break-inside: avoid` so a row never
+  splits across a page.
+- **PDF without a library** (`export/download.ts`): `printHtml` writes the HTML
+  into a hidden iframe and calls `print()`; the user picks "Save as PDF" in the
+  browser's dialog. The iframe is torn down on `afterprint` with a timeout
+  fallback. `downloadBlob` handles the CSV/Markdown file saves.
+- **UI**: `ExportDialog.tsx` mirrors the existing `CheckoutDialog` (overlay +
+  panel, Escape / backdrop close, `role="dialog"`), offering format, scope
+  (filtered view vs. entire inventory), and an include-holders toggle. An
+  "Export" button on the tracker toolbar opens it.
+
+---
+
 ## Phase 1 — Authentication & Admin Approval (complete — v0.2.0)
 
 Goal: non-members see only the public Home/About pages; people can sign up but

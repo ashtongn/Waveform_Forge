@@ -3,6 +3,7 @@ import LoadingScreen from '../../../components/LoadingScreen';
 import EquipmentForm from './EquipmentForm';
 import EquipmentTable from './EquipmentTable';
 import CheckoutDialog, { type CheckoutValues } from './CheckoutDialog';
+import ExportDialog from './ExportDialog';
 import {
   createEquipment,
   deleteEquipment,
@@ -81,6 +82,7 @@ export default function EquipmentTracker() {
   const [checkoutTarget, setCheckoutTarget] = useState<EquipmentItem | null>(
     null,
   );
+  const [exportOpen, setExportOpen] = useState(false);
 
   useEffect(() => {
     return subscribeToEquipment(
@@ -365,6 +367,16 @@ export default function EquipmentTracker() {
             </select>
           </div>
 
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => setExportOpen(true)}
+              className="rounded-md border border-forge-border px-3 py-1.5 text-sm font-medium text-forge-muted transition hover:text-forge-text"
+            >
+              Export
+            </button>
+          </div>
+
           <EquipmentTable
             items={filtered}
             collapsedGroups={collapsedGroups}
@@ -387,6 +399,14 @@ export default function EquipmentTracker() {
           item={checkoutTarget}
           onConfirm={handleCheckoutConfirm}
           onCancel={() => setCheckoutTarget(null)}
+        />
+      )}
+
+      {exportOpen && (
+        <ExportDialog
+          filtered={filtered}
+          all={list}
+          onClose={() => setExportOpen(false)}
         />
       )}
     </section>

@@ -8,6 +8,37 @@ fixes bump the **patch** number.
 
 ---
 
+## v0.7.0 — Equipment Export
+
+**Pushed:** 2026-09-22
+
+The Equipment Tracker can now export its inventory as CSV, Markdown, or PDF from
+a single modal. Everything runs client-side on already-loaded data — no new
+dependencies and no Firestore changes.
+
+### Added
+- **Export modal** (`equipment/ExportDialog.tsx`): pick a format (CSV / PDF /
+  Markdown), a scope (current filtered view or the entire inventory), and
+  whether to include checkout holder details. Styled and keyboard-accessible to
+  match the existing checkout dialog (Escape and backdrop-click to close,
+  `role="dialog"`).
+- **Normalization layer** (`equipment/export/flatten.ts`): a single
+  presentation-ready `ExportRow` shape — with derived available/checked-out
+  counts, status, and formatted holder strings — that all three formats consume,
+  so the outputs never drift apart.
+- **Format builders** (`equipment/export/exporters.ts`): `toCsv` (RFC 4180
+  quoting, UTF-8 BOM for Excel, and a formula-injection guard on every cell),
+  `toMarkdown` (GFM tables grouped by group name with a totals summary), and
+  `toPrintableHtml` (a standalone light-theme document tuned for print —
+  landscape page, repeating table headers, and rows that never split across a
+  page break).
+- **PDF via print** (`equipment/export/download.ts`): `printHtml` renders the
+  document into a hidden iframe and opens the browser's print dialog, where the
+  user chooses "Save as PDF". No PDF library is bundled. `downloadBlob` handles
+  the CSV and Markdown downloads.
+
+---
+
 ## v0.6.0 — Automatic Hierarchical Numbering
 
 **Pushed:** 2026-07-28
