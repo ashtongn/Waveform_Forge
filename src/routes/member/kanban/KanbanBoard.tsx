@@ -16,6 +16,7 @@ import { useAuth } from '../../../auth/useAuth';
 import KanbanColumn from './KanbanColumn';
 import TaskCard from './TaskCard';
 import TaskDialog from './TaskDialog';
+import ExportDialog from './ExportDialog';
 import {
   createTask,
   deleteTask,
@@ -46,6 +47,7 @@ export default function KanbanBoard() {
   const [collapsed, setCollapsed] = useState<Set<TaskStatus>>(new Set());
   const [editing, setEditing] = useState<KanbanTask | null>(null);
   const [creatingIn, setCreatingIn] = useState<TaskStatus | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   useEffect(() => {
     return subscribeToTasks(
@@ -212,13 +214,23 @@ export default function KanbanBoard() {
             reorder within a group.
           </p>
         </div>
-        <button
-          type="button"
-          onClick={() => setCreatingIn('backlog')}
-          className="rounded-md bg-forge-accent px-4 py-2 text-sm font-semibold text-forge-bg transition hover:bg-forge-accent/90"
-        >
-          New task
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => setExporting(true)}
+            disabled={list.length === 0}
+            className="rounded-md border border-forge-border px-4 py-2 text-sm font-medium text-forge-muted transition hover:text-forge-text disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Export
+          </button>
+          <button
+            type="button"
+            onClick={() => setCreatingIn('backlog')}
+            className="rounded-md bg-forge-accent px-4 py-2 text-sm font-semibold text-forge-bg transition hover:bg-forge-accent/90"
+          >
+            New task
+          </button>
+        </div>
       </header>
 
       {error && (
@@ -271,6 +283,10 @@ export default function KanbanBoard() {
             setCreatingIn(null);
           }}
         />
+      )}
+
+      {exporting && (
+        <ExportDialog tasks={list} onClose={() => setExporting(false)} />
       )}
     </section>
   );
