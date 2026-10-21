@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
+import { FirebaseError } from 'firebase/app';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { logIn } from '../../auth/actions';
+import { logIn, resetPassword } from '../../auth/actions';
 import { authErrorMessage } from '../../auth/errors';
 
 export default function Login() {
@@ -11,6 +12,32 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [resetting, setResetting] = useState(false);
+
+  async function handleReset() {
+    setError(null);
+    setNotice(null);
+    if (!email.trim()) {
+      setError('Enter your email above first.');
+      return;
+    }
+    setResetting(true);
+    try {
+      await resetPassword(email.trim());
+    } catch (err) {
+      // Unknown accounts get the same neutral notice to avoid revealing which emails exist.
+      if (!(err instanceof FirebaseError && err.code === 'auth/user-not-found')) {
+        setError(authErrorMessage(err));
+        setResetting(false);
+        return;
+      }
+    }
+    setNotice(
+      'If an account exists for that email, a reset link has been sent. Check your spam folder too.',
+    );
+    setResetting(false);
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -73,9 +100,26 @@ export default function Login() {
           />
         </div>
 
+        <div className="text-right">
+          <button
+            type="button"
+            onClick={handleReset}
+            disabled={resetting}
+            className="text-sm font-medium text-forge-accent hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {resetting ? 'Sending…' : 'Forgot password?'}
+          </button>
+        </div>
+
         {error && (
           <p role="alert" className="text-sm text-red-400">
             {error}
+          </p>
+        )}
+
+        {notice && (
+          <p role="status" className="text-sm text-forge-muted">
+            {notice}
           </p>
         )}
 

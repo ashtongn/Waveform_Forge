@@ -7,6 +7,7 @@ export function authErrorMessage(err: unknown): string {
   if (err instanceof FirebaseError) {
     switch (err.code) {
       case 'auth/invalid-email':
+      case 'auth/missing-email':
         return 'That email address is not valid.';
       case 'auth/missing-password':
         return 'Please enter a password.';
